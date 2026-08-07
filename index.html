@@ -1,0 +1,1412 @@
+<!doctype html>
+<!--
+  AveraLabs Voice Pipeline — self-contained static project page.
+  Usage: open index.html directly in a modern browser. No build step is required.
+  Audio assets live under assets/. Waveform peaks and word alignment are embedded
+  so the custom players work reliably from file:// URLs.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="AveraLabs builds high-quality full-duplex speech data from real conversations." />
+    <title>AveraLabs Voice Pipeline</title>
+    <style>
+      :root {
+        --text: #26282b;
+        --muted: #697079;
+        --border: #d9dde2;
+        --soft: #f6f7f8;
+        --baseline: #58728a;
+        --baseline-soft: #f4f7fa;
+        --our: #237a50;
+        --our-soft: #f2f9f5;
+        --active: #f5d76e;
+        --max: 1120px;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--text);
+        background: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+      button { font: inherit; }
+      .container { width: min(calc(100% - 32px), var(--max)); margin: 0 auto; }
+      .zh { display: none; }
+      html[lang="zh-CN"] .en { display: none; }
+      html[lang="zh-CN"] .zh { display: inline; }
+      html[lang="zh-CN"] p.zh { display: block; }
+
+      .utility {
+        min-height: 48px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        border-bottom: 1px solid #eceef0;
+      }
+      .language-toggle {
+        padding: 6px 10px;
+        color: #444;
+        background: #fff;
+        border: 1px solid #b8bdc3;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .project-header { padding: 58px 0 46px; text-align: center; }
+      .project-header h1 {
+        max-width: 860px;
+        margin: 0 auto 18px;
+        font-size: clamp(35px, 4vw, 50px);
+        line-height: 1.14;
+        letter-spacing: -.035em;
+        font-weight: 650;
+      }
+      .title-line { display: block; }
+      .project-header .meta { margin: 0; color: var(--muted); }
+      .project-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 23px; }
+      .project-nav a {
+        padding: 7px 15px;
+        color: #fff;
+        background: #3d4145;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 13px;
+      }
+
+      main { padding-bottom: 70px; }
+      section { margin-top: 70px; scroll-margin-top: 18px; }
+      main > section:first-child { margin-top: 34px; }
+      section > h2 {
+        margin: 0 0 20px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 28px;
+        line-height: 1.3;
+        font-weight: 600;
+      }
+      p { margin: 0 0 14px; }
+      .lead { font-size: 18px; line-height: 1.75; }
+      .note { color: var(--muted); font-size: 13px; }
+
+      .pipeline-figure {
+        margin: 0;
+        padding: 24px;
+        background: #fafafa;
+        border: 1px solid var(--border);
+      }
+      .pipeline-results { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 18px; }
+      .pipeline-output-intro { margin: 0 0 18px; }
+      .pipeline-result { padding: 13px 15px; border: 1px solid var(--border); }
+      .pipeline-result:first-child { background: var(--baseline-soft); }
+      .pipeline-result:last-child { background: var(--our-soft); border-color: #a7c3b2; }
+      .pipeline-result strong { display: block; margin-bottom: 3px; font-size: 14px; }
+      .pipeline-result span span, .pipeline-result > span { color: var(--muted); font-size: 13px; }
+      .pipeline-lane { display: grid; grid-template-columns: repeat(5, 1fr); gap: 26px; align-items: stretch; }
+      .pipeline-lane + .pipeline-lane { margin-top: 34px; }
+      .pipeline-node {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 106px;
+        padding: 13px 12px;
+        background: #fff;
+        border: 1px solid #bfc5cc;
+        border-radius: 3px;
+      }
+      .pipeline-node:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        top: 50%;
+        right: -21px;
+        color: #8a8f95;
+        transform: translateY(-50%);
+      }
+      .pipeline-node strong { display: block; margin-bottom: 5px; font-size: 14px; }
+      .pipeline-node span span, .pipeline-node > span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+      .pipeline-node > strong { order: 0; }
+      .pipeline-node > span { order: 2; margin-top: 6px; }
+      .model-name {
+        order: 1;
+        display: block;
+        margin-top: 4px;
+        padding: 6px 7px;
+        color: #374151;
+        background: #eef1f4;
+        border: 1px solid #d7dce1;
+        border-radius: 3px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 9px;
+        font-weight: 500;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .model-name + .model-name { margin-top: 4px; }
+      .pipeline-node.our-node { background: var(--our-soft); border-color: #7eac91; }
+      .lane-label { margin: 0 0 8px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+      .pipeline-lane + .lane-label { margin-top: 34px; }
+      figcaption { margin-top: 13px; color: var(--muted); font-size: 12px; text-align: center; }
+
+      .step { margin-top: 82px; }
+      .step + .step { padding-top: 58px; border-top: 1px solid var(--border); }
+      .step h3 { margin: 0 0 14px; font-size: 25px; line-height: 1.3; }
+      .strategy-note {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin: 24px 0;
+      }
+      .strategy-note > div { padding: 15px 16px; border-left: 3px solid #aeb5bc; background: #fafafa; }
+      .strategy-note > div:last-child { border-left-color: var(--our); background: var(--our-soft); }
+      .strategy-note strong { display: block; margin-bottom: 4px; font-size: 14px; }
+      .strategy-note p { margin: 0; font-size: 14px; }
+
+      .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+      #regeneration .step-intro + .comparison-grid { margin-top: 30px; }
+      #regeneration .comparison-grid + .comparison-grid { margin-top: 20px; }
+      .method-panel { min-width: 0; border: 1px solid var(--border); }
+      .method-panel.our { border-color: #86ad96; }
+      .method-header { padding: 17px 18px; background: var(--baseline-soft); border-bottom: 1px solid var(--border); }
+      .method-panel.our .method-header { background: var(--our-soft); }
+      .method-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+      .our-badge { padding: 2px 7px; color: #fff; background: var(--our); border-radius: 2px; font-size: 10px; font-weight: 800; }
+      .method-header h4 { margin: 0 0 5px; font-size: 19px; }
+      .source-path { color: #596169; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; overflow-wrap: anywhere; }
+      #separation .source-path, #regeneration .source-path { display: none; }
+      .audio-list { padding: 4px 18px 18px; }
+      .audio-case { padding: 17px 0; border-bottom: 1px solid #e5e7e9; }
+      .audio-case:last-child { border-bottom: 0; }
+      .audio-case-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+      .audio-case h5 { margin: 0; font-size: 14px; }
+      .audio-format { color: var(--muted); font-size: 10px; }
+
+      .sample-context {
+        min-height: 48px;
+        margin: 0;
+        padding: 12px 18px 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+      .method-panel.video-panel { display: flex; flex-direction: column; }
+      .video-case { flex: 1; display: grid; place-items: center; padding: 18px; }
+      .video-case video {
+        display: block;
+        width: min(100%, 372px);
+        margin: 0;
+        aspect-ratio: 4 / 3;
+        background: #111;
+        border: 1px solid var(--border);
+        object-fit: contain;
+      }
+
+      .wave-player { display: flex; flex-direction: column; }
+      .wave-player audio { display: none; }
+      .wave-controls { display: grid; grid-template-columns: 34px minmax(0, 1fr) 72px; gap: 9px; align-items: center; }
+      .wave-play {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        color: #fff;
+        background: var(--baseline);
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .method-panel.our .wave-play { background: var(--our); }
+      .wave-play:disabled { cursor: not-allowed; opacity: .45; }
+      .waveform {
+        height: 58px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: .5px;
+        padding: 5px 4px;
+        overflow: hidden;
+        background: #f3f5f6;
+        border: 1px solid var(--border);
+        cursor: pointer;
+      }
+      .waveform span { flex: 1 1 0; min-width: .5px; max-height: 100%; background: #a9b2bb; border-radius: .5px; }
+      .waveform span.played { background: var(--baseline); }
+      .method-panel.our .waveform span.played { background: var(--our); }
+      .waveform::after,
+      .dual-waveform::after {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        top: 0;
+        bottom: 0;
+        left: var(--playhead-position, 0%);
+        width: 1px;
+        background: #e0a800;
+        box-shadow: 0 0 3px rgba(224, 168, 0, .65);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-.5px);
+      }
+      .waveform.is-playing::after,
+      .dual-waveform.is-playing::after { opacity: 1; }
+      .wave-time { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
+
+      .dual-track-case { padding-bottom: 3px; }
+      .dual-track-player { width: 100%; min-width: 0; max-width: 100%; }
+      .dual-track-player audio { display: none; }
+      .dual-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .dual-play-both,
+      .track-play {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border: 1px solid var(--baseline);
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .dual-play-both {
+        min-width: 148px;
+        padding: 9px 13px;
+        color: #fff;
+        background: var(--baseline);
+        font-size: 13px;
+      }
+      .method-panel.our .dual-play-both { border-color: var(--our); background: var(--our); }
+      .dual-play-both.is-active { box-shadow: 0 0 0 3px rgb(88 114 138 / 16%); }
+      .method-panel.our .dual-play-both.is-active { box-shadow: 0 0 0 3px rgb(35 122 80 / 16%); }
+      .dual-default-hint { color: var(--muted); font-size: 11px; line-height: 1.35; }
+      .dual-time { margin-left: auto; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .dual-tracks { border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+      .dual-track {
+        display: grid;
+        grid-template-columns: 142px minmax(0, 1fr);
+        align-items: stretch;
+        min-height: 66px;
+        background: #fff;
+      }
+      .dual-track + .dual-track { border-top: 1px solid var(--border); }
+      .track-play {
+        width: 100%;
+        padding: 9px 10px;
+        color: #374151;
+        background: #f7f8f9;
+        border: 0;
+        border-right: 1px solid var(--border);
+        border-radius: 0;
+        font-size: 12px;
+        text-align: left;
+      }
+      .track-play:hover { background: #eef2f5; }
+      .track-play.is-active { color: #283b4c; background: #edf2f6; }
+      .method-panel.our .track-play.is-active { color: #185c3b; background: #edf7f1; }
+      .track-play-icon {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: var(--baseline);
+        border-radius: 50%;
+        font-size: 10px;
+        text-align: center;
+      }
+      .method-panel.our .track-play-icon { background: var(--our); }
+      .track-play-label { min-width: 0; display: flex; flex-direction: column; font-weight: 750; line-height: 1.2; white-space: nowrap; }
+      .track-play-label::after { content: "Play solo"; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 500; }
+      .track-play.is-active .track-play-label::after { content: "Playing solo"; color: currentColor; }
+      html[lang="zh-CN"] .track-play-label::after { content: "单独播放"; }
+      html[lang="zh-CN"] .track-play.is-active .track-play-label::after { content: "正在单独播放"; }
+      .dual-waveform {
+        height: 65px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: .5px;
+        padding: 6px 7px;
+        overflow: hidden;
+        background: #f3f5f6;
+        cursor: pointer;
+      }
+      .dual-waveform:hover { background: #edf1f3; }
+      .dual-waveform span { flex: 1 1 0; min-width: .5px; max-height: 100%; background: #a9b2bb; border-radius: .5px; pointer-events: none; }
+      .dual-waveform span.played { background: var(--baseline); }
+      .method-panel.our .dual-waveform span.played { background: var(--our); }
+      .dual-waveform[data-phase-label]::before {
+        content: attr(data-phase-label);
+        position: absolute;
+        z-index: 3;
+        top: 6px;
+        right: 7px;
+        padding: 4px 7px;
+        color: #fff;
+        background: rgba(31, 41, 55, .88);
+        border-radius: 3px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, .16);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.2;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-2px);
+        transition: opacity 120ms ease, transform 120ms ease;
+      }
+      .dual-waveform.is-playing:hover::before,
+      .dual-waveform.is-playing:focus-visible::before { opacity: 1; transform: translateY(0); }
+      .dual-track-player[data-mode="speaker0"] .dual-track[data-track="speaker1"],
+      .dual-track-player[data-mode="speaker1"] .dual-track[data-track="speaker0"] { opacity: .56; }
+      .dual-caption { width: 100%; height: 54px; margin: 9px 0 0; }
+
+      .live-caption {
+        order: -1;
+        width: calc(100% - 124px);
+        height: 50px;
+        margin: 0 0 7px 43px;
+        padding: 5px 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #fbfdfb;
+        border: 1px solid #dce9e1;
+        font-size: 12px;
+        line-height: 1.45;
+        overflow: hidden;
+      }
+      .live-caption.dual-caption {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        height: 64px;
+        margin: 9px 0 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      .caption-row {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+      }
+      .caption-row + .caption-row { margin-top: 3px; }
+      .caption-speaker { display: inline-block; min-width: 74px; color: var(--our); font-weight: 750; }
+      .caption-word { margin-right: .28em; color: #767c81; white-space: normal; }
+      .caption-word.active { color: #111; background: var(--active); border-radius: 2px; }
+
+      .finding-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+      .finding { padding: 12px 13px; background: #fafafa; border: 1px solid var(--border); font-size: 13px; }
+      .finding strong { display: block; margin-bottom: 3px; }
+
+      footer { padding: 28px 0; color: var(--muted); border-top: 1px solid var(--border); font-size: 12px; text-align: center; }
+
+      @media (min-width: 761px) { .title-line { white-space: nowrap; } }
+      @media (max-width: 820px) {
+        .pipeline-lane { grid-template-columns: 1fr; gap: 20px; }
+        .pipeline-node { min-height: 0; }
+        .pipeline-node:not(:last-child)::after { content: "↓"; top: auto; right: 50%; bottom: -22px; transform: translateX(50%); }
+      }
+      @media (max-width: 760px) {
+        .project-header { padding-top: 38px; }
+        .project-header h1 { font-size: 34px; }
+        section { margin-top: 52px; }
+        .comparison-grid, .strategy-note, .finding-list, .pipeline-results { grid-template-columns: 1fr; }
+        .wave-controls { grid-template-columns: 34px minmax(0, 1fr); }
+        .wave-time { grid-column: 2; text-align: left; }
+        .live-caption { width: calc(100% - 43px); }
+        .dual-toolbar { flex-wrap: wrap; }
+        .dual-time { width: 100%; margin-left: 0; }
+        .dual-track { grid-template-columns: 122px minmax(0, 1fr); }
+        .track-play { padding-inline: 8px; font-size: 11px; }
+        .track-play-icon { width: 26px; height: 26px; flex-basis: 26px; }
+        .dual-caption { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container utility">
+      <button class="language-toggle" type="button" aria-label="切换为中文"><span class="en">中文</span><span class="zh">English</span></button>
+    </div>
+
+    <header class="container project-header">
+      <h1>
+        <span class="en"><span class="title-line">AveraLabs Voice Pipeline</span><span class="title-line">Full-Duplex Speech Data</span><span class="title-line">from Real Conversations</span></span>
+        <span class="zh"><span class="title-line">AveraLabs 语音管线</span><span class="title-line">从真实对话构建</span><span class="title-line">全双工语音数据</span></span>
+      </h1>
+      <p class="meta">AveraLabs · Technical Project Page · 2026</p>
+      <nav class="project-nav" aria-label="Project sections">
+        <a href="#introduction"><span class="en">Introduction</span><span class="zh">介绍</span></a>
+        <a href="#pipeline"><span class="en">Pipeline</span><span class="zh">流程</span></a>
+        <a href="#examples"><span class="en">Comparative Examples</span><span class="zh">对比实例</span></a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section id="introduction">
+        <h2><span class="en">Introduction</span><span class="zh">项目介绍</span></h2>
+        <p class="lead en">AveraLabs transforms <strong>any</strong> real world audio into high-quality training data for full-duplex speech models. It discovers genuine two-speaker exchanges, verifies speaker-pure tracks, annotates timing and persona, then expands and re-performs the conversation while preserving realistic turn-taking, pauses, overlap, and paralinguistic behavior.</p>
+        <p class="lead zh">AveraLabs 将 podcast、电视采访和电影对白等长音频转化为全双工语音模型的高质量训练数据。管线发现真实的双人对谈，验证说话人纯净声轨，标注时序与 Persona，并在保留真实话轮、停顿、重叠和副语言行为的基础上进行扩写与重新演绎。</p>
+      </section>
+
+      <section id="pipeline">
+        <h2><span class="en">Pipeline</span><span class="zh">处理流程</span></h2>
+        <p class="pipeline-output-intro"><span class="en">Every accepted conversation passes through the complete pipeline and produces both outputs together: high-quality separated data derived from the original recording, and regenerated expansion data grounded in the same real conversation.</span><span class="zh">每段通过筛选与质检的对话都会经过完整管线，并同时产出两类数据：一类是来自原始录音的高质量分离数据，另一类是以同一真实对话为依据的重生成扩展数据。</span></p>
+        <div class="pipeline-results">
+          <div class="pipeline-result"><strong><span class="en">Delivered together · High-quality separated data</span><span class="zh">同步交付 · 高质量分离数据</span></strong><span><span class="en">Clean, time-aligned, speaker-pure tracks extracted from the original recording.</span><span class="zh">从原始录音中提取清晰、时间对齐且说话人纯净的独立声轨。</span></span></div>
+          <div class="pipeline-result"><strong><span class="en">Delivered together · Regenerated expansion data</span><span class="zh">同步交付 · 重生成扩展数据</span></strong><span><span class="en">New, controllable dialogue grounded in the content and interaction patterns of the same real conversation.</span><span class="zh">基于同一真实对话的内容与互动模式，生成全新且可控的扩展对话数据。</span></span></div>
+        </div>
+        <figure class="pipeline-figure">
+          <p class="lane-label"><span class="en">Separation</span><span class="zh">说话人分离</span></p>
+          <div class="pipeline-lane">
+            <div class="pipeline-node"><strong><span class="en">Long-form audio</span><span class="zh">长音频输入</span></strong><span><span class="en">Podcast · interview · film</span><span class="zh">Podcast · 访谈 · 影视对白</span></span></div>
+            <div class="pipeline-node"><strong><span class="en">VAD partition</span><span class="zh">VAD 分片</span></strong><span><span class="en">Natural boundaries ·<br />≈15 min</span><span class="zh">自然边界 · 约 15 分钟</span></span><code class="model-name">pyannote/segmentation-3.0</code></div>
+            <div class="pipeline-node"><strong><span class="en">Diarization & filtering</span><span class="zh">说话人识别与过滤</span></strong><span><span class="en">Remove music and low SNR</span><span class="zh">剔除音乐和低 SNR</span></span><code class="model-name">BUT-FIT/diarizen-wavlm-large-s80-md-v2</code></div>
+            <div class="pipeline-node"><strong><span class="en">Dynamic window search</span><span class="zh">动态窗口搜索</span></strong><span><span class="en">Find high-quality two-speaker conversation segments that are as long as possible</span><span class="zh">寻找尽可能长的高质量双人对话片段</span></span></div>
+            <div class="pipeline-node gate"><strong><span class="en">Separation + QC retry</span><span class="zh">分离 + 质检重试</span></strong><span><span class="en">Reject split, merged, or leaking identities</span><span class="zh">拒绝拆轨、并轨和串轨</span></span><code class="model-name">DialogueSidon</code></div>
+          </div>
+          <p class="lane-label"><span class="en">Real-scene grounded expansion & customization</span><span class="zh">基于真实场景的扩写与定制</span></p>
+          <div class="pipeline-lane">
+            <div class="pipeline-node our-node"><strong><span class="en">Verified dual tracks</span><span class="zh">已验证双轨</span></strong><span><span class="en">The two speakers are separated into two independent audio-track files</span><span class="zh">两个说话人的声音被分离到两个独立的声轨文件中</span></span></div>
+            <div class="pipeline-node"><strong><span class="en">Transcription</span><span class="zh">转写</span></strong><span><span class="en">Word and utterance timing</span><span class="zh">词级与话轮级时间戳</span></span><code class="model-name">nvidia/parakeet-tdt-0.6b-v3</code></div>
+            <div class="pipeline-node"><strong><span class="en">Persona modeling</span><span class="zh">Persona 建模</span></strong><span><span class="en">Timbre · rhythm · speaking habits</span><span class="zh">音色 · 节奏 · 表达习惯</span></span></div>
+            <div class="pipeline-node"><strong><span class="en">Grounded expansion</span><span class="zh">有依据的扩写</span></strong><span><span class="en">Content · pauses · overlap</span><span class="zh">内容 · 停顿 · 重叠</span></span></div>
+            <div class="pipeline-node our-node"><strong><span class="en">New dialogue audio</span><span class="zh">新对话音频</span></strong><span><span class="en">Emotionally expressive dialogue generated from real conversations</span><span class="zh">基于真实对话生成的富有情感的对话</span></span><code class="model-name"><b>voicedesign &amp; voiceclone</b></code></div>
+          </div>
+          <figcaption><span class="en">The pipeline first secures reliable real dialogue, then uses it as evidence for controllable data expansion.</span><span class="zh">管线先获得可靠的真实对话，再以其为依据进行可控的数据扩展。</span></figcaption>
+        </figure>
+      </section>
+
+      <section id="examples">
+        <h2><span class="en">Key Step Comparisons</span><span class="zh">关键步骤对比</span></h2>
+        <article class="step" id="separation">
+          <h3><span class="en">Speaker Separation</span><span class="zh">说话人分离</span></h3>
+          <div class="step-intro">
+            <p class="en">A conventional separation model may split one speaker across different tracks, merge two speakers into the same track, or severely degrade speech quality. Such low-quality separation is effectively unusable for training full-duplex speech models, where stable speaker identity and clean, time-aligned signals are fundamental requirements.</p>
+            <p class="zh">传统分离模型可能把同一个人拆到不同音轨、把两个人合入同一音轨，或者严重破坏语音质量。这类低质量分离结果基本无法用于全双工语音模型训练，因为稳定的说话人身份、清晰的人声和准确的时间对齐都是最基础的数据要求。</p>
+            <p class="en">After analyzing and comparing the strengths of several models, we combine them into a coordinated workflow. VAD first partitions hour-scale source audio at natural boundaries into approximately 15-minute parts before diarization, improving Diarizen's speaker-identification performance. After music screening and low-SNR filtering, a greedy dynamic-window search captures high-quality reciprocal two-speaker segments that are as long as possible. This both removes long monologues from the training set and creates better input conditions for Sidon: alternating turns and sufficient speech from each person allow the separator to perform more reliably. After separation, speaker-consistency checks detect cases where one person is split across tracks or two people are merged into one track; affected chunks are automatically separated again to repair the result.</p>
+            <p class="zh">在分析并比较多个模型的特性后，我们将各自优势组合为一套协同工作的流程。首先利用 VAD 沿自然边界将小时级原始素材切分为约 15 分钟的片段，再交给 diarization 处理，从而提高 Diarizen 的说话人识别性能。完成音乐筛查和低 SNR 过滤后，系统通过动态窗口进行贪心搜索，捕获尽可能长、质量足够高且有来有回的双人对话片段。这一步既过滤了训练数据中的大段单人独白，也为 Sidon 分离创造了更理想的输入条件：两位说话人交替发言，并且各自拥有充分的语音时长，Sidon 才能发挥更稳定的分离性能。分离完成后，系统继续执行说话人一致性检查；一旦检测到同一个人被拆入不同音轨，或两个人被合入同一音轨，便会自动重新分离，对该片段进行修复。</p>
+          </div>
+          <div class="strategy-note">
+            <div><strong><span class="en">Previous approach</span><span class="zh">之前的方案</span></strong><p><span class="en">SepFormer separates the selected chunk directly, without a downstream identity-consistency gate.</span><span class="zh">SepFormer 直接分离选定片段，缺少后续的说话人身份一致性质量门。</span></p></div>
+            <div><strong><span class="en">Our optimization</span><span class="zh">我们的优化</span></strong><p><span class="en">OUR pipeline combines dynamic two-speaker windows, Sidon separation, identity-consistency checks, retry, and light background-noise suppression.</span><span class="zh">OUR 管线结合动态双人窗口、Sidon 分离、身份一致性检测、自动重试和轻量底噪过滤。</span></p></div>
+          </div>
+
+          <div class="comparison-grid">
+            <section class="method-panel" aria-label="SepFormer comparison">
+              <header class="method-header">
+                <div class="method-kicker"><span class="en">Previous approach</span><span class="zh">之前的方案</span></div>
+                <h4>SepFormer</h4>
+                <div class="source-path">assets/separation/separation-sepformer/</div>
+              </header>
+              <div class="audio-list">
+                <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="SepFormer input: original recording" data-zh-label="SepFormer 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
+                <div class="audio-case dual-track-case">
+                  <div class="audio-case-head"><h5><span class="en">2 · Speaker tracks</span><span class="zh">2 · 说话人双轨</span></h5><span class="audio-format">8 kHz</span></div>
+                  <div class="dual-track-player" data-mode="both">
+                    <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sepformer/s0.wav"></audio>
+                    <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sepformer/s1.wav"></audio>
+                    <audio preload="metadata" data-track-audio="both" src="assets/separation/separation-sepformer/seperated-and-mixed.wav"></audio>
+                    <div class="dual-toolbar">
+                      <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
+                      <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 双轨同时播放</span></span>
+                      <span class="dual-time">0:00 / 0:15</span>
+                    </div>
+                    <div class="dual-tracks">
+                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="method-panel our" aria-label="Our separation result">
+              <header class="method-header">
+                <div class="method-kicker"><span class="our-badge">OUR</span><span>AveraLabs</span></div>
+                <h4>Sidon + AveraLabs Pipeline</h4>
+                <div class="source-path">assets/separation/separation-sidon-our/</div>
+              </header>
+              <div class="audio-list">
+                <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="Our input: original recording" data-zh-label="OUR 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
+                <div class="audio-case dual-track-case">
+                  <div class="audio-case-head"><h5><span class="en">2 · OUR Speaker tracks</span><span class="zh">2 · OUR 说话人双轨</span></h5><span class="audio-format">16 kHz</span></div>
+                  <div class="dual-track-player" data-mode="both" data-caption-source="separation">
+                    <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sidon-our/s0.wav"></audio>
+                    <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sidon-our/s1.wav"></audio>
+                    <audio preload="metadata" data-track-audio="both" src="assets/separation/separation-sidon-our/seperated-and-mixed.wav"></audio>
+                    <div class="dual-toolbar">
+                      <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
+                      <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 双轨同时播放</span></span>
+                      <span class="dual-time">0:00 / 0:15</span>
+                    </div>
+                    <div class="dual-tracks">
+                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                    </div>
+                    <div class="live-caption dual-caption" aria-live="off"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="finding-list">
+            <div class="finding"><strong><span class="en">Identity consistency</span><span class="zh">身份一致性</span></strong><span class="en">OUR keeps each person in a stable track.</span><span class="zh">OUR 将每个人稳定保留在独立声轨。</span></div>
+            <div class="finding"><strong><span class="en">Acoustic quality</span><span class="zh">声学质量</span></strong><span class="en">OUR preserves clearer 16 kHz speech.</span><span class="zh">OUR 保留更清晰的 16 kHz 人声。</span></div>
+            <div class="finding"><strong><span class="en">Noise control</span><span class="zh">噪声控制</span></strong><span class="en">OUR also suppresses part of the background noise.</span><span class="zh">OUR 同时过滤了部分底噪。</span></div>
+          </div>
+        </article>
+
+        <article class="step" id="regeneration">
+          <h3><span class="en">Augmentation from Real World Audio</span><span class="zh">全双工对话生成</span></h3>
+          <div class="step-intro">
+            <p class="en">Prompt-only scripts may sound fluent yet generic because they do not inherit the motivation, rhythm, or context of a real exchange. Template-based Dialogue TTS then tends to produce regular pauses and mechanically inserted overlap.</p>
+            <p class="zh">纯提示词剧本可能听起来流畅却较为泛化，因为它没有继承真实交流中的动机、节奏和上下文；模板化 Dialogue TTS 又容易产生规律的停顿和机械插入的 overlap。</p>
+            <p class="en">OUR method is grounded in real conversation. It expands from observed dialogue content, persona, pauses, and overlap, while also examining the preceding five minutes of dialogue history for broader context. The regeneration stage offers substantial freedom and control: it can extend conversations to greatly increase the volume and diversity of training data, or customize turn-taking, pauses, overlap, paralinguistic behavior, and other characteristics for specific training requirements. The final dialogue is generated with timing and interaction patterns grounded in real exchanges.</p>
+            <p class="zh">OUR 方法以真实对话为依据，基于其中已观测到的内容、Persona、停顿与重叠进行扩写，并进一步观察此前 5 分钟的对话历史以获得更多上下文。重新生成阶段具备很大的自由度与可控性：既可以扩写对话，大幅增加训练数据的规模与多样性；也可以针对具体训练要求，定制话轮节奏、停顿、重叠、副语言表现及其他数据特征。最终生成的对话仍以真实交流中的时序与互动模式为依据。</p>
+          </div>
+          <div class="comparison-grid">
+            <section class="method-panel video-panel" aria-label="Original movie">
+              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original Movie</span><span class="zh">原始电影</span></h4></header>
+              <div class="video-case">
+                <video controls playsinline preload="metadata" aria-label="Original movie">
+                  <source src="assets/regeneration/old-movie/source.mp4" type="video/mp4" />
+                  <span class="en">Your browser does not support MP4 video playback.</span>
+                  <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
+                </video>
+              </div>
+            </section>
+            <section class="method-panel our" aria-label="AveraLabs regeneration comparison">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>AveraLabs</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">With improved overall audio quality, this regeneration reconstructs the original voices and extends the scene naturally while preserving vocal identity, character dynamics, and narrative continuity.</span><span class="zh">在提升整体音质的基础上，该重生成结果重建原始声音并自然扩展场景，同时保持人物声线、角色关系与剧情脉络的一致性。</span></p>
+              <div class="audio-list">
+                <div class="audio-case dual-track-case">
+                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen" data-reconstruction-end="24.3" data-transcript-url="assets/regeneration/old-movie/transcript.json?v=20260811a" data-alignment-url="assets/regeneration/old-movie/word-alignment.json?v=20260811a">
+                    <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/old-movie/speaker-0.wav?v=20260811a"></audio>
+                    <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/old-movie/speaker-1.wav?v=20260811a"></audio>
+                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/old-movie/combined.wav?v=20260811a"></audio>
+                    <div class="dual-toolbar">
+                      <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
+                      <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 双轨同时播放</span></span>
+                      <span class="dual-time">0:00 / 0:19</span>
+                    </div>
+                    <div class="dual-tracks">
+                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                    </div>
+                    <div class="live-caption dual-caption" aria-live="off"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="comparison-grid">
+            <section class="method-panel video-panel" aria-label="Original TV talk show">
+              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original TV Talk Show</span><span class="zh">原始电视访谈</span></h4></header>
+              <div class="video-case">
+                <video controls playsinline preload="metadata" aria-label="Original TV talk show">
+                  <source src="assets/regeneration/tv-talk-show/source.mp4?v=20260811a" type="video/mp4" />
+                  <span class="en">Your browser does not support MP4 video playback.</span>
+                  <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
+                </video>
+              </div>
+            </section>
+            <section class="method-panel our" aria-label="Additional AveraLabs regeneration comparison">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>AveraLabs</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">With background music removed, this regeneration expands a short source exchange into a longer, naturally paced conversation while preserving speaker identity and conversational context.</span><span class="zh">在去除背景音乐后，该重生成结果将简短的源对话扩展为更长、节奏自然的交流，同时保持说话人身份与对话上下文的一致性。</span></p>
+              <div class="audio-list">
+                <div class="audio-case dual-track-case">
+                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-our-1" data-reconstruction-end="18.3" data-transcript-url="assets/regeneration/tv-talk-show/transcript.json?v=20260811b" data-alignment-url="assets/regeneration/tv-talk-show/word-alignment.json?v=20260811b">
+                    <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/tv-talk-show/speaker-0.wav?v=20260811b"></audio>
+                    <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/tv-talk-show/speaker-1.wav?v=20260811b"></audio>
+                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/tv-talk-show/combined.wav?v=20260811b"></audio>
+                    <div class="dual-toolbar">
+                      <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
+                      <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 双轨同时播放</span></span>
+                      <span class="dual-time">0:00 / 2:20</span>
+                    </div>
+                    <div class="dual-tracks">
+                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                    </div>
+                    <div class="live-caption dual-caption" aria-live="off"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="comparison-grid">
+            <section class="method-panel video-panel" aria-label="Original YouTube video">
+              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original YouTube Video</span><span class="zh">原始 YouTube 视频</span></h4></header>
+              <div class="video-case">
+                <video controls playsinline preload="metadata" aria-label="Original YouTube video">
+                  <source src="assets/regeneration/youtube-car-video/source.mp4?v=20260813a" type="video/mp4" />
+                  <span class="en">Your browser does not support MP4 video playback.</span>
+                  <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
+                </video>
+              </div>
+            </section>
+            <section class="method-panel our" aria-label="Car dialogue AveraLabs regeneration comparison">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>AveraLabs</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">This example reconstructs a two-speaker in-car conversation with separate speaker tracks and time-aligned captions.</span><span class="zh">该示例重建了一段车内双人对话，并提供独立说话人声轨与时间对齐字幕。</span></p>
+              <div class="audio-list">
+                <div class="audio-case dual-track-case">
+                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-car" data-reconstruction-end="32.725" data-transcript-url="assets/regeneration/youtube-car-video/transcript.json?v=20260813a" data-alignment-url="assets/regeneration/youtube-car-video/word-alignment.json?v=20260813a">
+                    <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/youtube-car-video/speaker-0.wav?v=20260813b"></audio>
+                    <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/youtube-car-video/speaker-1.wav?v=20260813b"></audio>
+                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/youtube-car-video/combined.wav?v=20260813b"></audio>
+                    <div class="dual-toolbar">
+                      <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
+                      <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 双轨同时播放</span></span>
+                      <span class="dual-time">0:00 / 2:17</span>
+                    </div>
+                    <div class="dual-tracks">
+                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                    </div>
+                    <div class="live-caption dual-caption" aria-live="off"></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+          <div class="finding-list">
+            <div class="finding"><strong><span class="en">Real-world grounding</span><span class="zh">真实场景依据</span></strong><span class="en">OUR preserves the source conversation's context and interaction patterns.</span><span class="zh">OUR 保留源对话的上下文与互动模式。</span></div>
+            <div class="finding"><strong><span class="en">Controllable interaction</span><span class="zh">可控互动</span></strong><span class="en">OUR supports customized turn-taking, pauses, overlap, and paralinguistic behavior.</span><span class="zh">OUR 支持定制话轮、停顿、重叠与副语言表现。</span></div>
+            <div class="finding"><strong><span class="en">Scalable augmentation</span><span class="zh">可扩展的数据增强</span></strong><span class="en">OUR expands real conversations into longer and more diverse training data.</span><span class="zh">OUR 将真实对话扩展为更长、更多样的训练数据。</span></div>
+          </div>
+        </article>
+      </section>
+
+    </main>
+
+
+
+
+
+
+
+
+    <footer class="container">AveraLabs Voice Pipeline · Technical Project Page</footer>
+
+    <script id="alignment-data" type="application/json">{"0":[{"w":"It's","s":0.0,"e":0.24},{"w":"my","s":0.24,"e":0.4},{"w":"first","s":0.4,"e":0.56},{"w":"language","s":0.56,"e":0.96},{"w":"and","s":0.96,"e":1.12},{"w":"I","s":1.12,"e":1.2},{"w":"couldn't","s":1.2,"e":1.44},{"w":"read","s":1.44,"e":1.6},{"w":"it.","s":1.6,"e":1.76},{"w":"That's","s":1.84,"e":2.08},{"w":"when","s":2.08,"e":2.16},{"w":"I","s":2.16,"e":2.24},{"w":"was","s":2.24,"e":2.4},{"w":"like,","s":2.4,"e":2.48},{"w":"I","s":2.64,"e":2.8},{"w":"need","s":2.8,"e":2.88},{"w":"to","s":2.88,"e":3.04},{"w":"go","s":3.04,"e":3.2},{"w":"back","s":3.2,"e":3.36},{"w":"in","s":3.36,"e":3.68},{"w":"touch.","s":3.68,"e":4.32},{"w":"Yeah,","s":5.12,"e":5.44},{"w":"I,","s":5.52,"e":5.6},{"w":"I","s":6.08,"e":6.16},{"w":"have","s":6.24,"e":6.32},{"w":"to","s":6.48,"e":6.64},{"w":"give","s":6.64,"e":6.8},{"w":"it","s":6.8,"e":6.88},{"w":"to","s":6.88,"e":7.04},{"w":"my","s":7.04,"e":7.2},{"w":"dad","s":7.2,"e":7.52},{"w":"to","s":7.52,"e":7.76},{"w":"translate","s":7.76,"e":8.24},{"w":"it","s":8.24,"e":8.4},{"w":"for","s":8.4,"e":8.64},{"w":"me.","s":8.64,"e":8.8},{"w":"And","s":9.04,"e":9.28},{"w":"my","s":9.28,"e":9.44},{"w":"dad's","s":9.44,"e":9.84},{"w":"reading","s":9.84,"e":10.16},{"w":"my","s":10.16,"e":10.32},{"w":"childhood","s":10.32,"e":10.8},{"w":"diary","s":10.8,"e":11.2},{"w":"just","s":11.28,"e":11.44},{"w":"laughing.","s":11.44,"e":11.76},{"w":"Like","s":11.84,"e":12.0},{"w":"haha,","s":12.0,"e":12.5},{"w":"haha","s":12.5,"e":14}],"1":[{"w":"Okay.","s":0.16,"e":0.24},{"w":"and","s":3.685,"e":3.845},{"w":"get","s":4.005,"e":4.245},{"w":"somebody","s":4.245,"e":4.565},{"w":"to","s":4.565,"e":4.645},{"w":"read","s":4.645,"e":4.965},{"w":"it","s":4.965,"e":5.125},{"w":"to","s":5.125,"e":5.285},{"w":"you.","s":5.285,"e":5.445},{"w":"Yeah.","s":5.685,"e":5.925},{"w":"It's","s":8.689,"e":9.169},{"w":"you.","s":9.169,"e":9.409}]}</script>
+
+    <script id="transcript-data" type="application/json">{"0":[{"s":0.0,"e":1.76,"text":"It's my first language and I couldn't read it."},{"s":1.84,"e":4.32,"text":"That's when I was like, I need to go back in touch."},{"s":5.12,"e":8.8,"text":"Yeah, I, I have to give it to my dad to translate it for me."},{"s":9.04,"e":11.76,"text":"And my dad's reading my childhood diary just laughing."},{"s":11.84,"e":14.0,"text":"Like, haha, haha"}],"1":[{"s":3.685,"e":5.445,"text":"and get somebody to read it to you."},{"s":5.685,"e":5.925,"text":"Yeah."},{"s":8.689,"e":9.409,"text":"It's you."}]}</script>
+
+    <script>
+      /**
+       * Custom waveform players, synchronized word captions, and language UI.
+       * Usage: add a .wave-player with data-waveform and an embedded audio node.
+       */
+      const languageToggle = document.querySelector('.language-toggle');
+      const audioElements = document.querySelectorAll('audio');
+      const players = document.querySelectorAll('.wave-player');
+      const dualPlayerElements = document.querySelectorAll('.dual-track-player');
+      /** @type {DualTrackPlayer[]} */
+      const dualPlayerControllers = [];
+      const alignmentData = JSON.parse(document.querySelector('#alignment-data').textContent);
+      const transcriptData = JSON.parse(document.querySelector('#transcript-data').textContent);
+      const regenerationTranscriptData = {};
+      const regenerationAlignmentData = {};
+      const waveformBufferCache = new Map();
+      const waveformRenderState = new WeakMap();
+      let waveformResizeTimer = null;
+      /** @type {AudioContext | null} */
+      let waveformAudioContext = null;
+      /** @typedef {{w: string, s: number, e: number}} AlignedWord */
+      /** @typedef {{s: number, e: number, text: string}} Utterance */
+      /** @typedef {'both' | 'speaker0' | 'speaker1'} DualTrackMode */
+
+      /** @param {unknown} value @returns {value is Record<string, unknown>} */
+      function isRecord(value) {
+        return value !== null && typeof value === 'object' && !Array.isArray(value);
+      }
+
+      /**
+       * Loads JSON through HTTP so the rendered captions always reflect the source files.
+       * Opening index.html through file:// is intentionally unsupported because browsers block fetch there.
+       * @param {string} url
+       * @returns {Promise<Record<string, unknown>>}
+       */
+      async function fetchJsonObject(url) {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+        const payload = await response.json();
+        if (!isRecord(payload)) throw new TypeError(`Expected a JSON object from ${url}`);
+        return payload;
+      }
+
+      /**
+       * Converts the persisted transcript contract into the compact structure used by the renderer.
+       * @param {Record<string, unknown>} payload
+       * @param {string} prefix
+       * @returns {Record<string, Utterance[]>}
+       */
+      function parseTranscriptPayload(payload, prefix) {
+        return Object.fromEntries(['s0', 's1'].map((speakerKey) => {
+          const utterances = payload[speakerKey];
+          if (!Array.isArray(utterances)) throw new TypeError(`Transcript is missing array ${speakerKey}`);
+          return [`${prefix}-${speakerKey}`, utterances.map((utterance) => {
+            if (!isRecord(utterance)
+              || typeof utterance.t0 !== 'number'
+              || typeof utterance.t1 !== 'number'
+              || typeof utterance.text !== 'string') {
+              throw new TypeError(`Invalid transcript entry in ${speakerKey}`);
+            }
+            return { s: utterance.t0, e: utterance.t1, text: utterance.text };
+          })];
+        }));
+      }
+
+      /**
+       * Converts the persisted word-alignment contract without changing its timing.
+       * @param {Record<string, unknown>} payload
+       * @param {string} prefix
+       * @returns {Record<string, AlignedWord[]>}
+       */
+      function parseAlignmentPayload(payload, prefix) {
+        return Object.fromEntries(['s0', 's1'].map((speakerKey) => {
+          const words = payload[speakerKey];
+          if (!Array.isArray(words)) throw new TypeError(`Alignment is missing array ${speakerKey}`);
+          return [`${prefix}-${speakerKey}`, words.map((word) => {
+            if (!isRecord(word)
+              || typeof word.t0 !== 'number'
+              || typeof word.t1 !== 'number'
+              || typeof word.word !== 'string') {
+              throw new TypeError(`Invalid alignment entry in ${speakerKey}`);
+            }
+            return { w: word.word, s: word.t0, e: word.t1 };
+          })];
+        }));
+      }
+
+      /** @param {HTMLElement} player @returns {Promise<void>} */
+      async function loadExternalCaptionData(player) {
+        const transcriptUrl = player.dataset.transcriptUrl;
+        const alignmentUrl = player.dataset.alignmentUrl;
+        if (!transcriptUrl && !alignmentUrl) return;
+        if (!transcriptUrl || !alignmentUrl || !player.dataset.captionPrefix) {
+          throw new Error('External captions require transcript, alignment, and prefix attributes');
+        }
+        const [transcriptPayload, alignmentPayload] = await Promise.all([
+          fetchJsonObject(transcriptUrl),
+          fetchJsonObject(alignmentUrl),
+        ]);
+        Object.assign(regenerationTranscriptData, parseTranscriptPayload(transcriptPayload, player.dataset.captionPrefix));
+        Object.assign(regenerationAlignmentData, parseAlignmentPayload(alignmentPayload, player.dataset.captionPrefix));
+      }
+
+      /** @returns {AudioContext} */
+      function getWaveformAudioContext() {
+        if (waveformAudioContext) return waveformAudioContext;
+        const AudioContextType = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextType) throw new Error('This browser does not support Web Audio decoding');
+        waveformAudioContext = new AudioContextType();
+        return waveformAudioContext;
+      }
+
+      /**
+       * Downloads and decodes each unique URL once, even when several players share the same source.
+       * @param {HTMLAudioElement} audio
+       * @returns {Promise<AudioBuffer>}
+       */
+      function decodeAudio(audio) {
+        const sourceUrl = audio.currentSrc || audio.src;
+        if (!sourceUrl) return Promise.reject(new Error('Audio element has no source URL'));
+        if (!waveformBufferCache.has(sourceUrl)) {
+          const pendingBuffer = fetch(sourceUrl)
+            .then((response) => {
+              if (!response.ok) throw new Error(`Failed to load waveform audio: HTTP ${response.status}`);
+              return response.arrayBuffer();
+            })
+            .then((encodedAudio) => getWaveformAudioContext().decodeAudioData(encodedAudio));
+          waveformBufferCache.set(sourceUrl, pendingBuffer);
+        }
+        return waveformBufferCache.get(sourceUrl);
+      }
+
+      /**
+       * Combines peak amplitude with RMS energy so transients remain visible without overstating silence.
+       * @param {AudioBuffer} audioBuffer
+       * @param {number} barCount
+       * @returns {number[]}
+       */
+      function calculateWaveformPeaks(audioBuffer, barCount) {
+        const sampleCount = audioBuffer.length;
+        const rawLevels = Array.from({ length: barCount }, (_, barIndex) => {
+          const start = Math.floor((barIndex * sampleCount) / barCount);
+          const end = Math.max(start + 1, Math.floor(((barIndex + 1) * sampleCount) / barCount));
+          let peak = 0;
+          let squareSum = 0;
+          let measuredSamples = 0;
+          for (let channelIndex = 0; channelIndex < audioBuffer.numberOfChannels; channelIndex += 1) {
+            const channel = audioBuffer.getChannelData(channelIndex);
+            for (let sampleIndex = start; sampleIndex < Math.min(end, channel.length); sampleIndex += 1) {
+              const amplitude = Math.abs(channel[sampleIndex]);
+              peak = Math.max(peak, amplitude);
+              squareSum += amplitude * amplitude;
+              measuredSamples += 1;
+            }
+          }
+          const rms = measuredSamples > 0 ? Math.sqrt(squareSum / measuredSamples) : 0;
+          return (0.65 * peak) + (0.35 * rms);
+        });
+        const maximumLevel = Math.max(...rawLevels);
+        if (maximumLevel <= 0) return rawLevels;
+        return rawLevels.map((level) => Math.pow(level / maximumLevel, 0.72));
+      }
+
+      /** @param {HTMLElement} waveform @param {number[]} peaks @param {number} maximumHeight */
+      function renderWaveformBars(waveform, peaks, maximumHeight) {
+        const fragment = document.createDocumentFragment();
+        peaks.forEach((peak) => {
+          const bar = document.createElement('span');
+          bar.style.height = `${Math.max(2, Math.round(peak * maximumHeight))}px`;
+          fragment.appendChild(bar);
+        });
+        waveform.replaceChildren(fragment);
+        waveform.removeAttribute('aria-busy');
+      }
+
+      /** @param {HTMLElement} waveform @returns {number} */
+      function getWaveformBarCount(waveform) {
+        const availableWidth = Math.max(1, waveform.clientWidth);
+        return Math.max(72, Math.min(320, Math.round(availableWidth / 1.75)));
+      }
+
+      /** @param {number[]} detailedPeaks @param {number} barCount @returns {number[]} */
+      function resampleWaveformPeaks(detailedPeaks, barCount) {
+        if (barCount >= detailedPeaks.length) return detailedPeaks.slice();
+        return Array.from({ length: barCount }, (_, barIndex) => {
+          const start = Math.floor((barIndex * detailedPeaks.length) / barCount);
+          const end = Math.max(start + 1, Math.floor(((barIndex + 1) * detailedPeaks.length) / barCount));
+          let peak = 0;
+          let sum = 0;
+          for (let index = start; index < end; index += 1) {
+            peak = Math.max(peak, detailedPeaks[index]);
+            sum += detailedPeaks[index];
+          }
+          return (0.65 * peak) + (0.35 * (sum / (end - start)));
+        });
+      }
+
+      /** Reuses the decoded buffer while adapting detail to the current rendered width. @param {HTMLElement} waveform */
+      function renderResponsiveWaveform(waveform) {
+        const state = waveformRenderState.get(waveform);
+        if (!state) return;
+        const barCount = getWaveformBarCount(waveform);
+        if (state.barCount === barCount) return;
+        state.barCount = barCount;
+        renderWaveformBars(waveform, resampleWaveformPeaks(state.detailedPeaks, barCount), state.maximumHeight);
+      }
+
+      function refreshResponsiveWaveforms() {
+        document.querySelectorAll('.waveform, .dual-waveform').forEach(renderResponsiveWaveform);
+      }
+
+      /** @param {HTMLAudioElement} audio @param {HTMLElement} waveform @param {number} maximumHeight */
+      async function loadWaveform(audio, waveform, maximumHeight) {
+        waveform.setAttribute('aria-busy', 'true');
+        try {
+          const audioBuffer = await decodeAudio(audio);
+          waveformRenderState.set(waveform, {
+            detailedPeaks: calculateWaveformPeaks(audioBuffer, 320),
+            maximumHeight,
+            barCount: 0,
+          });
+          renderResponsiveWaveform(waveform);
+        } catch (error) {
+          console.error(error);
+          waveform.removeAttribute('aria-busy');
+          waveform.setAttribute('aria-label', 'Waveform failed to load');
+        }
+      }
+
+      /** @returns {'en' | 'zh-CN'} */
+      function readLanguage() {
+        try { return localStorage.getItem('avera-language') === 'zh-CN' ? 'zh-CN' : 'en'; }
+        catch { return 'en'; }
+      }
+
+      /** @param {'en' | 'zh-CN'} language */
+      function applyLanguage(language) {
+        const isChinese = language === 'zh-CN';
+        document.documentElement.lang = language;
+        document.title = isChinese ? 'AveraLabs 语音管线' : 'AveraLabs Voice Pipeline';
+        languageToggle.setAttribute('aria-label', isChinese ? 'Switch to English' : '切换为中文');
+        updatePlayerLabels();
+        requestAnimationFrame(alignComparisonRows);
+        try { localStorage.setItem('avera-language', language); } catch { /* file:// storage may be unavailable */ }
+      }
+
+      /** @param {number} seconds @returns {string} */
+      function formatTime(seconds) {
+        if (!Number.isFinite(seconds)) return '0:00';
+        return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+      }
+
+      /** @param {HTMLElement} player */
+      function renderCaption(player) {
+        const audio = player.querySelector('audio');
+        const panel = player.querySelector('.live-caption');
+        if (player.dataset.captionSet) {
+          const fragment = document.createDocumentFragment();
+          const captionSets = player.dataset.captionSet === 'regen-mix'
+            ? ['regen-s0', 'regen-s1']
+            : [player.dataset.captionSet];
+          const firstStart = Math.min(...captionSets
+            .map((captionSet) => regenerationTranscriptData[captionSet]?.[0]?.s)
+            .filter(Number.isFinite));
+          const captionTime = audio.paused && audio.currentTime === 0 && Number.isFinite(firstStart)
+            ? firstStart
+            : audio.currentTime;
+          captionSets.forEach((captionSet) => {
+            const activeUtterance = (regenerationTranscriptData[captionSet] || [])
+              .find((utterance) => captionTime >= utterance.s && captionTime <= utterance.e);
+            if (!activeUtterance) return;
+            const speaker = captionSet.endsWith('s0') ? 'Speaker 0' : 'Speaker 1';
+            const sentenceWords = (regenerationAlignmentData[captionSet] || [])
+              .filter((word) => word.e >= activeUtterance.s && word.s <= activeUtterance.e);
+            const row = document.createElement('div');
+            row.className = 'caption-row';
+            row.setAttribute('aria-label', `${speaker}: ${activeUtterance.text}`);
+            const label = document.createElement('span');
+            label.className = 'caption-speaker';
+            label.textContent = speaker;
+            row.appendChild(label);
+            sentenceWords.forEach((word) => {
+              const token = document.createElement('span');
+              token.className = 'caption-word';
+              if (!audio.paused && captionTime >= word.s && captionTime <= word.e) token.classList.add('active');
+              token.textContent = word.w;
+              row.appendChild(token);
+            });
+            fragment.appendChild(row);
+          });
+          panel.replaceChildren(fragment);
+          return;
+        }
+        if (!player.dataset.speakers) return;
+        const fragment = document.createDocumentFragment();
+        player.dataset.speakers.split(',').forEach((speakerId) => {
+          const utterances = transcriptData[speakerId] || [];
+          const activeUtterance = utterances.find((utterance) => audio.currentTime >= utterance.s && audio.currentTime <= utterance.e);
+          if (!activeUtterance) return;
+
+          /** @type {AlignedWord[]} */
+          const words = alignmentData[speakerId] || [];
+          const sentenceWords = words.filter((word) => word.e >= activeUtterance.s && word.s <= activeUtterance.e);
+          const row = document.createElement('div');
+          row.className = 'caption-row';
+          row.setAttribute('aria-label', `Speaker ${speakerId}: ${activeUtterance.text}`);
+          const label = document.createElement('span');
+          label.className = 'caption-speaker';
+          label.textContent = `Speaker ${speakerId}`;
+          row.appendChild(label);
+          sentenceWords.forEach((word) => {
+            const token = document.createElement('span');
+            token.className = 'caption-word';
+            if (!audio.paused && audio.currentTime >= word.s && audio.currentTime <= word.e) token.classList.add('active');
+            token.textContent = word.w;
+            row.appendChild(token);
+          });
+          fragment.appendChild(row);
+        });
+        panel.replaceChildren(fragment);
+      }
+
+      /** @param {HTMLElement} player */
+      function updatePlayer(player) {
+        const audio = player.querySelector('audio');
+        const bars = player.querySelectorAll('.waveform span');
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 15.092;
+        const ratio = duration > 0 ? audio.currentTime / duration : 0;
+        bars.forEach((bar, index) => bar.classList.toggle('played', index / bars.length <= ratio));
+        player.querySelector('.wave-time').textContent = `${formatTime(audio.currentTime)} / ${formatTime(duration)}`;
+        const waveform = player.querySelector('.waveform');
+        waveform.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+        waveform.setAttribute('aria-valuetext', `${formatTime(audio.currentTime)} / ${formatTime(duration)}`);
+        waveform.style.setProperty('--playhead-position', `${ratio * 100}%`);
+        waveform.classList.toggle('is-playing', !audio.paused);
+        renderCaption(player);
+      }
+
+      /** Pauses every other example so one obvious playback action owns the page audio. */
+      function pauseAllExcept(activeAudio) {
+        audioElements.forEach((audio) => { if (audio !== activeAudio) audio.pause(); });
+      }
+
+      /**
+       * Owns all state and event handling for one two-speaker player.
+       * The surrounding HTML is the component contract; missing controls fail loudly during setup.
+       */
+      class DualTrackPlayer {
+        /** @param {HTMLElement} element */
+        constructor(element) {
+          this.element = element;
+          this.audios = {
+            speaker0: this.requireElement('[data-track-audio="speaker0"]', HTMLAudioElement),
+            speaker1: this.requireElement('[data-track-audio="speaker1"]', HTMLAudioElement),
+            both: this.requireElement('[data-track-audio="both"]', HTMLAudioElement),
+          };
+          this.bothButton = this.requireElement('.dual-play-both', HTMLButtonElement);
+          this.bothIcon = this.requireElement('.dual-play-icon', HTMLElement);
+          this.bothLabel = this.requireElement('.dual-play-label', HTMLElement);
+          this.timeElement = this.requireElement('.dual-time', HTMLElement);
+          this.waveforms = Array.from(element.querySelectorAll('.dual-waveform'));
+          this.trackControls = Array.from(element.querySelectorAll('[data-track-button]')).map((button) => {
+            const mode = button.dataset.trackButton;
+            if (mode !== 'speaker0' && mode !== 'speaker1') throw new Error(`Invalid track button mode: ${String(mode)}`);
+            return {
+              button,
+              mode,
+              icon: this.requireElement('.track-play-icon', HTMLElement, button),
+              label: this.requireElement('.track-play-label', HTMLElement, button),
+            };
+          });
+          this.captionPanel = element.querySelector('.dual-caption');
+          this.captionSource = element.dataset.captionSource || null;
+          this.captionPrefix = element.dataset.captionPrefix || null;
+          const reconstructionEnd = element.dataset.reconstructionEnd;
+          /** @type {number | null} */
+          this.reconstructionEndSeconds = reconstructionEnd === undefined ? null : Number(reconstructionEnd);
+          if (this.captionPanel && this.captionSource !== 'separation' && this.captionSource !== 'regeneration') {
+            throw new Error(`Invalid caption source: ${String(this.captionSource)}`);
+          }
+          if (this.captionSource === 'regeneration' && !this.captionPrefix) {
+            throw new Error('Regeneration captions require data-caption-prefix');
+          }
+          if (this.reconstructionEndSeconds !== null
+            && (!Number.isFinite(this.reconstructionEndSeconds) || this.reconstructionEndSeconds <= 0)) {
+            throw new Error('Reconstruction boundary must be a positive number of seconds');
+          }
+          if (this.waveforms.length !== 2 || this.trackControls.length !== 2) {
+            throw new Error('Dual-track player requires exactly two waveforms and two track controls');
+          }
+          this.waveformReady = this.initializeWaveforms();
+          this.bindEvents();
+          this.update();
+        }
+
+        /** @returns {DualTrackMode} */
+        get mode() {
+          const mode = this.element.dataset.mode;
+          if (mode === 'speaker0' || mode === 'speaker1' || mode === 'both') return mode;
+          throw new Error(`Invalid dual-track mode: ${String(mode)}`);
+        }
+
+        /** @param {DualTrackMode} mode */
+        set mode(mode) {
+          this.element.dataset.mode = mode;
+        }
+
+        /** @returns {HTMLAudioElement} */
+        get activeAudio() {
+          return this.audios[this.mode];
+        }
+
+        /**
+         * Enforces the component's required DOM contract and provides a useful setup error.
+         * @template {Element} T
+         * @param {string} selector
+         * @param {{new (...args: any[]): T}} elementType
+         * @param {ParentNode} [root]
+         * @returns {T}
+         */
+        requireElement(selector, elementType, root = this.element) {
+          const element = root.querySelector(selector);
+          if (!(element instanceof elementType)) throw new Error(`Dual-track player is missing ${selector}`);
+          return element;
+        }
+
+        /** @returns {Promise<void>} */
+        async initializeWaveforms() {
+          const waveformLoads = this.waveforms.map((waveform) => {
+            const trackMode = waveform.closest('.dual-track')?.dataset.track;
+            if (trackMode !== 'speaker0' && trackMode !== 'speaker1') {
+              throw new Error(`Invalid waveform track: ${String(trackMode)}`);
+            }
+            return loadWaveform(this.audios[trackMode], waveform, 52);
+          });
+          // A full mixed-track fetch keeps seeking functional on static servers without HTTP range support.
+          const mixedTrackLoad = decodeAudio(this.audios.both).then(() => undefined);
+          await Promise.all([...waveformLoads, mixedTrackLoad]);
+        }
+
+        bindEvents() {
+          this.bothButton.addEventListener('click', () => this.toggleMode('both'));
+          this.trackControls.forEach(({ button, mode }) => {
+            button.addEventListener('click', () => this.toggleMode(mode));
+          });
+          this.waveforms.forEach((waveform) => {
+            waveform.addEventListener('pointerdown', (event) => this.seekFromPointer(waveform, event));
+            waveform.addEventListener('keydown', (event) => this.seekFromKeyboard(event));
+          });
+          Object.values(this.audios).forEach((audio) => {
+            ['loadedmetadata', 'timeupdate', 'seeked', 'play', 'pause', 'ended'].forEach((eventName) => {
+              audio.addEventListener(eventName, () => this.handleAudioEvent(audio, eventName));
+            });
+          });
+        }
+
+        /** @param {DualTrackMode} nextMode */
+        toggleMode(nextMode) {
+          const currentAudio = this.activeAudio;
+          if (this.mode === nextMode && !currentAudio.paused) {
+            currentAudio.pause();
+            return;
+          }
+
+          const resumeAt = currentAudio.currentTime;
+          this.mode = nextMode;
+          pauseAllExcept(this.activeAudio);
+          this.seek(resumeAt);
+          this.activeAudio.play().catch(() => {});
+          this.update();
+        }
+
+        /** Keeps all three files aligned so switching modes continues at the same moment. @param {number} seconds */
+        seek(seconds) {
+          Object.values(this.audios).forEach((audio) => {
+            const duration = Number.isFinite(audio.duration) ? audio.duration : seconds;
+            audio.currentTime = Math.min(duration, Math.max(0, seconds));
+          });
+        }
+
+        /**
+         * Seeks on pointerdown because synthetic click events may omit usable coordinates.
+         * @param {HTMLElement} waveform
+         * @param {PointerEvent} event
+         */
+        seekFromPointer(waveform, event) {
+          const bounds = waveform.getBoundingClientRect();
+          if (bounds.width <= 0) return;
+          const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+          const duration = Number.isFinite(this.activeAudio.duration) ? this.activeAudio.duration : 15.092;
+          this.seek(ratio * duration);
+          this.update();
+        }
+
+        /** @param {KeyboardEvent} event */
+        seekFromKeyboard(event) {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          this.seek(this.activeAudio.currentTime + (event.key === 'ArrowRight' ? 2 : -2));
+          this.update();
+        }
+
+        /** @param {HTMLAudioElement} audio @param {string} eventName */
+        handleAudioEvent(audio, eventName) {
+          if (audio !== this.activeAudio) return;
+          if (eventName === 'ended') this.seek(0);
+          this.update();
+        }
+
+        /** @param {'speaker0' | 'speaker1'} speakerMode @returns {{speakerId: string, transcripts: Utterance[], alignments: AlignedWord[]}} */
+        getCaptionData(speakerMode) {
+          const speakerId = speakerMode === 'speaker0' ? '0' : '1';
+          const isRegeneration = this.captionSource === 'regeneration';
+          const dataKey = isRegeneration ? `${this.captionPrefix}-s${speakerId}` : speakerId;
+          return {
+            speakerId,
+            transcripts: (isRegeneration ? regenerationTranscriptData[dataKey] : transcriptData[dataKey]) || [],
+            alignments: (isRegeneration ? regenerationAlignmentData[dataKey] : alignmentData[dataKey]) || [],
+          };
+        }
+
+        renderCaption() {
+          if (!this.captionPanel) return;
+          if (this.element.dataset.captionLoadError) {
+            this.captionPanel.textContent = this.element.dataset.captionLoadError;
+            return;
+          }
+          const requestedSpeakers = this.mode === 'both' ? ['speaker0', 'speaker1'] : [this.mode];
+          const captionData = requestedSpeakers.map((speakerMode) => this.getCaptionData(speakerMode));
+          const firstCaptionStart = Math.min(...captionData
+            .map(({ transcripts }) => transcripts[0]?.s)
+            .filter(Number.isFinite));
+          const captionTime = this.activeAudio.paused && this.activeAudio.currentTime === 0 && Number.isFinite(firstCaptionStart)
+            ? firstCaptionStart
+            : this.activeAudio.currentTime;
+          const fragment = document.createDocumentFragment();
+
+          captionData.forEach(({ speakerId, transcripts, alignments }) => {
+            const activeUtterance = transcripts.find(({ s, e }) => captionTime >= s && captionTime <= e);
+            if (!activeUtterance) return;
+            const row = document.createElement('div');
+            row.className = 'caption-row';
+            row.setAttribute('aria-label', `Speaker ${speakerId}: ${activeUtterance.text}`);
+            const label = document.createElement('span');
+            label.className = 'caption-speaker';
+            label.textContent = `Speaker ${speakerId}`;
+            row.appendChild(label);
+            alignments
+              .filter(({ s, e }) => e >= activeUtterance.s && s <= activeUtterance.e)
+              .forEach((word) => {
+                const token = document.createElement('span');
+                token.className = 'caption-word';
+                if (!this.activeAudio.paused && captionTime >= word.s && captionTime <= word.e) token.classList.add('active');
+                token.textContent = word.w;
+                row.appendChild(token);
+              });
+            fragment.appendChild(row);
+          });
+          this.captionPanel.replaceChildren(fragment);
+        }
+
+        update() {
+          const duration = Number.isFinite(this.activeAudio.duration) ? this.activeAudio.duration : 15.092;
+          const ratio = duration > 0 ? this.activeAudio.currentTime / duration : 0;
+          const isChinese = document.documentElement.lang === 'zh-CN';
+          const isPlaying = !this.activeAudio.paused;
+          const phaseLabel = this.reconstructionEndSeconds === null
+            ? null
+            : (this.activeAudio.currentTime < this.reconstructionEndSeconds
+              ? (isChinese ? '当前阶段 · 原始声音重建' : 'Current phase · Original voice reconstruction')
+              : (isChinese ? '当前阶段 · 对话扩展' : 'Current phase · Dialogue extension'));
+          this.timeElement.textContent = `${formatTime(this.activeAudio.currentTime)} / ${formatTime(duration)}`;
+
+          this.waveforms.forEach((waveform) => {
+            const bars = waveform.querySelectorAll('span');
+            bars.forEach((bar, index) => bar.classList.toggle('played', (index + 1) / bars.length <= ratio));
+            waveform.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+            waveform.setAttribute('aria-valuetext', `${formatTime(this.activeAudio.currentTime)} / ${formatTime(duration)}`);
+            const seekLabel = isChinese ? '音频波形，可点击跳转' : 'Audio waveform; click to seek';
+            waveform.setAttribute('aria-label', phaseLabel ? `${seekLabel}${isChinese ? '。' : '. '}${phaseLabel}` : seekLabel);
+            if (phaseLabel) waveform.dataset.phaseLabel = phaseLabel;
+            else delete waveform.dataset.phaseLabel;
+            waveform.style.setProperty('--playhead-position', `${ratio * 100}%`);
+            waveform.classList.toggle('is-playing', isPlaying);
+          });
+
+          const bothIsPlaying = this.mode === 'both' && isPlaying;
+          const bothLabel = bothIsPlaying
+            ? (isChinese ? '暂停双轨' : 'Pause both')
+            : (isChinese ? '播放双轨' : 'Play both');
+          this.bothButton.classList.toggle('is-active', this.mode === 'both');
+          this.bothIcon.textContent = bothIsPlaying ? 'Ⅱ' : '▶';
+          this.bothLabel.textContent = bothLabel;
+          this.bothButton.setAttribute('aria-label', bothLabel);
+
+          this.trackControls.forEach(({ button, mode, icon, label }) => {
+            const speakerNumber = mode === 'speaker0' ? '0' : '1';
+            const modeIsPlaying = this.mode === mode && isPlaying;
+            button.classList.toggle('is-active', this.mode === mode);
+            icon.textContent = modeIsPlaying ? 'Ⅱ' : '▶';
+            label.textContent = isChinese ? `说话人 ${speakerNumber}` : `Speaker ${speakerNumber}`;
+            button.setAttribute('aria-label', modeIsPlaying
+              ? (isChinese ? `暂停说话人 ${speakerNumber}` : `Pause Speaker ${speakerNumber}`)
+              : (isChinese ? `仅播放说话人 ${speakerNumber}` : `Play Speaker ${speakerNumber} only`));
+          });
+          this.renderCaption();
+        }
+      }
+
+      function updatePlayerLabels() {
+        const isChinese = document.documentElement.lang === 'zh-CN';
+        players.forEach((player) => {
+          const audio = player.querySelector('audio');
+          const button = player.querySelector('.wave-play');
+          const action = audio.paused ? (isChinese ? '播放' : 'Play') : (isChinese ? '暂停' : 'Pause');
+          button.setAttribute('aria-label', `${action}: ${isChinese ? audio.dataset.zhLabel : audio.dataset.enLabel}`);
+          player.querySelector('.waveform').setAttribute('aria-label', isChinese ? '音频波形，可点击跳转' : 'Audio waveform; click to seek');
+        });
+        dualPlayerControllers.forEach((controller) => controller.update());
+      }
+
+      /** Keeps matching examples in two-column comparisons on the same horizontal baseline. */
+      function alignComparisonRows() {
+        document.querySelectorAll('#separation .comparison-grid, #regeneration .comparison-grid').forEach((comparison) => {
+        const panels = comparison.querySelectorAll('.method-panel');
+        const headers = Array.from(panels, (panel) => panel.querySelector('.method-header'));
+        const rows = Array.from(panels, (panel) => Array.from(panel.querySelectorAll('.audio-case')));
+
+        headers.forEach((header) => { header.style.minHeight = ''; });
+        rows.flat().forEach((row) => { row.style.minHeight = ''; });
+        if (window.matchMedia('(max-width: 760px)').matches) return;
+
+        const headerHeight = Math.max(...headers.map((header) => header.getBoundingClientRect().height));
+        headers.forEach((header) => { header.style.minHeight = `${Math.ceil(headerHeight)}px`; });
+        for (let index = 0; index < Math.min(rows[0].length, rows[1].length); index += 1) {
+          const rowHeight = Math.max(rows[0][index].getBoundingClientRect().height, rows[1][index].getBoundingClientRect().height);
+          rows[0][index].style.minHeight = `${Math.ceil(rowHeight)}px`;
+          rows[1][index].style.minHeight = `${Math.ceil(rowHeight)}px`;
+        }
+        });
+      }
+
+      /** @param {HTMLElement} player @returns {Promise<void>} */
+      async function initializePlayer(player) {
+        const audio = player.querySelector('audio');
+        const button = player.querySelector('.wave-play');
+        const waveform = player.querySelector('.waveform');
+        button.addEventListener('click', () => {
+          if (audio.paused) {
+            audioElements.forEach((candidate) => { if (candidate !== audio) candidate.pause(); });
+            audio.play().catch(() => {});
+          } else audio.pause();
+        });
+        waveform.addEventListener('click', (event) => {
+          const bounds = waveform.getBoundingClientRect();
+          const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+          if (Number.isFinite(audio.duration)) audio.currentTime = ratio * audio.duration;
+        });
+        waveform.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.preventDefault();
+          const direction = event.key === 'ArrowRight' ? 1 : -1;
+          audio.currentTime = Math.min(audio.duration || 15.092, Math.max(0, audio.currentTime + direction * 2));
+        });
+        ['loadedmetadata', 'timeupdate', 'seeked', 'play', 'pause', 'ended'].forEach((eventName) => {
+          audio.addEventListener(eventName, () => {
+            if (eventName === 'ended') audio.currentTime = 0;
+            button.textContent = audio.paused ? '▶' : 'Ⅱ';
+            updatePlayer(player);
+            updatePlayerLabels();
+          });
+        });
+        updatePlayer(player);
+        await loadWaveform(audio, waveform, 48);
+      }
+
+      /** Loads file-backed captions before player construction so the first frame is correct. */
+      async function initializePage() {
+        await Promise.all(Array.from(dualPlayerElements, async (element) => {
+          try {
+            await loadExternalCaptionData(element);
+          } catch (error) {
+            console.error(error);
+            element.dataset.captionLoadError = 'Caption JSON failed to load. Serve this page over HTTP and check the JSON paths.';
+          }
+        }));
+        const waveformLoads = Array.from(players, initializePlayer);
+        dualPlayerElements.forEach((element) => dualPlayerControllers.push(new DualTrackPlayer(element)));
+        waveformLoads.push(...dualPlayerControllers.map((controller) => controller.waveformReady));
+        languageToggle.addEventListener('click', () => applyLanguage(document.documentElement.lang === 'en' ? 'zh-CN' : 'en'));
+        window.addEventListener('resize', () => {
+          if (waveformResizeTimer !== null) window.clearTimeout(waveformResizeTimer);
+          waveformResizeTimer = window.setTimeout(() => requestAnimationFrame(() => {
+            alignComparisonRows();
+            refreshResponsiveWaveforms();
+          }), 120);
+        });
+        applyLanguage(readLanguage());
+        await Promise.all(waveformLoads);
+      }
+
+      initializePage();
+    </script>
+  </body>
+</html>
