@@ -4,11 +4,11 @@
 
 **Full-Duplex Speech Data from Real Conversations**
 
-AveraLabs transforms **any** real world audio into high-quality training data
-for full-duplex speech models. It discovers genuine two-speaker exchanges,
-verifies speaker-pure tracks, annotates timing and persona, then expands and
-re-performs the conversation while preserving realistic turn-taking, pauses,
-overlap, and paralinguistic behavior.
+Conversational Voice transforms **any** real world audio into high-quality
+training data for full-duplex speech models. It discovers genuine two-speaker
+exchanges, verifies speaker-pure tracks, annotates timing and persona, then
+expands and re-performs the conversation while preserving realistic turn-taking,
+pauses, overlap, and paralinguistic behavior.
 
 **[Explore the project page, architecture, and audio comparisons →](https://openmartai.github.io/ConversationalVoicePipeline/)**
 
