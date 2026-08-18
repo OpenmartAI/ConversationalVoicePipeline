@@ -305,6 +305,7 @@
   function renderCaption(player) {
     const audio = player.querySelector('audio');
     const panel = player.querySelector('.live-caption');
+    const isChinese = document.documentElement.lang === 'zh-CN';
     if (player.dataset.captionSet) {
       const fragment = document.createDocumentFragment();
       const captionSets = player.dataset.captionSet === 'regen-mix'
@@ -320,7 +321,8 @@
         const activeUtterance = (regenerationTranscriptData[captionSet] || [])
           .find((utterance) => captionTime >= utterance.s && captionTime <= utterance.e);
         if (!activeUtterance) return;
-        const speaker = captionSet.endsWith('s0') ? 'Speaker 0' : 'Speaker 1';
+        const speakerNumber = captionSet.endsWith('s0') ? '0' : '1';
+        const speaker = isChinese ? `说话人 ${speakerNumber}` : `Speaker ${speakerNumber}`;
         const sentenceWords = (regenerationAlignmentData[captionSet] || [])
           .filter((word) => word.e >= activeUtterance.s && word.s <= activeUtterance.e);
         const row = document.createElement('div');
@@ -354,10 +356,11 @@
       const sentenceWords = words.filter((word) => word.e >= activeUtterance.s && word.s <= activeUtterance.e);
       const row = document.createElement('div');
       row.className = 'caption-row';
-      row.setAttribute('aria-label', `Speaker ${speakerId}: ${activeUtterance.text}`);
+      const speaker = isChinese ? `说话人 ${speakerId}` : `Speaker ${speakerId}`;
+      row.setAttribute('aria-label', `${speaker}: ${activeUtterance.text}`);
       const label = document.createElement('span');
       label.className = 'caption-speaker';
-      label.textContent = `Speaker ${speakerId}`;
+      label.textContent = speaker;
       row.appendChild(label);
       sentenceWords.forEach((word) => {
         const token = document.createElement('span');
@@ -589,16 +592,18 @@
         ? firstCaptionStart
         : this.activeAudio.currentTime;
       const fragment = document.createDocumentFragment();
+      const isChinese = document.documentElement.lang === 'zh-CN';
 
       captionData.forEach(({ speakerId, transcripts, alignments }) => {
         const activeUtterance = transcripts.find(({ s, e }) => captionTime >= s && captionTime <= e);
         if (!activeUtterance) return;
+        const speaker = isChinese ? `说话人 ${speakerId}` : `Speaker ${speakerId}`;
         const row = document.createElement('div');
         row.className = 'caption-row';
-        row.setAttribute('aria-label', `Speaker ${speakerId}: ${activeUtterance.text}`);
+        row.setAttribute('aria-label', `${speaker}: ${activeUtterance.text}`);
         const label = document.createElement('span');
         label.className = 'caption-speaker';
-        label.textContent = `Speaker ${speakerId}`;
+        label.textContent = speaker;
         row.appendChild(label);
         alignments
           .filter(({ s, e }) => e >= activeUtterance.s && s <= activeUtterance.e)
