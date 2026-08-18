@@ -15,9 +15,10 @@
   const WAVEFORM_DETAILED_PEAK_COUNT = 320;
   const WAVEFORM_MAXIMUM_BAR_COUNT = 320;
   const WAVEFORM_MINIMUM_BAR_COUNT = 72;
+  const TRACK_SYNC_TOLERANCE_SECONDS = 0.08;
   /** @typedef {{w: string, s: number, e: number}} AlignedWord */
   /** @typedef {{s: number, e: number, text: string}} Utterance */
-  /** @typedef {'both' | 'speaker0' | 'speaker1'} DualTrackMode */
+  /** @typedef {'speaker0' | 'speaker1'} SpeakerTrack */
 
   /**
    * Enforces required page-level DOM contracts during startup.
@@ -301,6 +302,35 @@
     return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
   }
 
+  /**
+   * Returns the drawable width inside a waveform's horizontal padding so the bars, playhead,
+   * and pointer seeking all use the same coordinate system.
+   * @param {HTMLElement} waveform
+   * @returns {{left: number, width: number}}
+   */
+  function getWaveformContentBox(waveform) {
+    const style = window.getComputedStyle(waveform);
+    const left = Number.parseFloat(style.paddingLeft) || 0;
+    const right = Number.parseFloat(style.paddingRight) || 0;
+    return { left, width: Math.max(0, waveform.clientWidth - left - right) };
+  }
+
+  /** @param {HTMLElement} waveform @param {number} ratio */
+  function updateWaveformPlayhead(waveform, ratio) {
+    const contentBox = getWaveformContentBox(waveform);
+    const clampedRatio = Math.min(1, Math.max(0, ratio));
+    waveform.style.setProperty('--playhead-position', `${contentBox.left + contentBox.width * clampedRatio}px`);
+  }
+
+  /** @param {HTMLElement} waveform @param {number} clientX @returns {number} */
+  function getWaveformPointerRatio(waveform, clientX) {
+    const bounds = waveform.getBoundingClientRect();
+    const contentBox = getWaveformContentBox(waveform);
+    if (contentBox.width <= 0) return 0;
+    const contentLeft = bounds.left + waveform.clientLeft + contentBox.left;
+    return Math.min(1, Math.max(0, (clientX - contentLeft) / contentBox.width));
+  }
+
   /** @param {HTMLElement} player */
   function renderCaption(player) {
     const audio = player.querySelector('audio');
@@ -380,21 +410,22 @@
     const bars = player.querySelectorAll('.waveform span');
     const duration = Number.isFinite(audio.duration) ? audio.duration : DEFAULT_AUDIO_DURATION_SECONDS;
     const ratio = duration > 0 ? audio.currentTime / duration : 0;
-    bars.forEach((bar, index) => bar.classList.toggle('played', index / bars.length <= ratio));
+    bars.forEach((bar, index) => bar.classList.toggle('played', (index + 0.5) / bars.length <= ratio));
     player.querySelector('.wave-time').textContent = `${formatTime(audio.currentTime)} / ${formatTime(duration)}`;
     const waveform = player.querySelector('.waveform');
     waveform.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
     waveform.setAttribute('aria-valuetext', `${formatTime(audio.currentTime)} / ${formatTime(duration)}`);
-    waveform.style.setProperty('--playhead-position', `${ratio * 100}%`);
+    updateWaveformPlayhead(waveform, ratio);
     waveform.classList.toggle('is-playing', !audio.paused);
     renderCaption(player);
   }
 
   // Shared playback coordination
 
-  /** Pauses every other example so one obvious playback action owns the page audio. */
-  function pauseAllExcept(activeAudio) {
-    audioElements.forEach((audio) => { if (audio !== activeAudio) audio.pause(); });
+  /** Pauses every other example so one obvious playback action owns the page audio. @param {Iterable<HTMLAudioElement>} activeAudios */
+  function pauseAllExcept(activeAudios) {
+    const activeSet = new Set(activeAudios);
+    audioElements.forEach((audio) => { if (!activeSet.has(audio)) audio.pause(); });
   }
 
   // Dual-track player
@@ -410,21 +441,23 @@
       this.audios = {
         speaker0: this.requireElement('[data-track-audio="speaker0"]', HTMLAudioElement),
         speaker1: this.requireElement('[data-track-audio="speaker1"]', HTMLAudioElement),
-        both: this.requireElement('[data-track-audio="both"]', HTMLAudioElement),
       };
+      this.audioList = Object.values(this.audios);
+      this.masterAudio = this.audios.speaker0;
       this.bothButton = this.requireElement('.dual-play-both', HTMLButtonElement);
       this.bothIcon = this.requireElement('.dual-play-icon', HTMLElement);
       this.bothLabel = this.requireElement('.dual-play-label', HTMLElement);
       this.timeElement = this.requireElement('.dual-time', HTMLElement);
       this.waveforms = Array.from(element.querySelectorAll('.dual-waveform'));
-      this.trackControls = Array.from(element.querySelectorAll('[data-track-button]')).map((button) => {
-        const mode = button.dataset.trackButton;
-        if (mode !== 'speaker0' && mode !== 'speaker1') throw new Error(`Invalid track button mode: ${String(mode)}`);
+      this.muteControls = Array.from(element.querySelectorAll('[data-track-mute]')).map((button) => {
+        const track = button.dataset.trackMute;
+        if (track !== 'speaker0' && track !== 'speaker1') throw new Error(`Invalid mute button track: ${String(track)}`);
         return {
           button,
-          mode,
-          icon: this.requireElement('.track-play-icon', HTMLElement, button),
-          label: this.requireElement('.track-play-label', HTMLElement, button),
+          track,
+          icon: this.requireElement('.track-mute-icon', HTMLElement, button),
+          label: this.requireElement('.track-mute-label', HTMLElement, button),
+          row: this.requireElement(`[data-track="${track}"]`, HTMLElement),
         };
       });
       this.captionPanel = element.querySelector('.dual-caption');
@@ -443,29 +476,17 @@
         && (!Number.isFinite(this.reconstructionEndSeconds) || this.reconstructionEndSeconds <= 0)) {
         throw new Error('Reconstruction boundary must be a positive number of seconds');
       }
-      if (this.waveforms.length !== 2 || this.trackControls.length !== 2) {
-        throw new Error('Dual-track player requires exactly two waveforms and two track controls');
+      if (this.waveforms.length !== 2 || this.muteControls.length !== 2) {
+        throw new Error('Dual-track player requires exactly two waveforms and two mute controls');
       }
       this.waveformReady = this.initializeWaveforms();
       this.bindEvents();
       this.update();
     }
 
-    /** @returns {DualTrackMode} */
-    get mode() {
-      const mode = this.element.dataset.mode;
-      if (mode === 'speaker0' || mode === 'speaker1' || mode === 'both') return mode;
-      throw new Error(`Invalid dual-track mode: ${String(mode)}`);
-    }
-
-    /** @param {DualTrackMode} mode */
-    set mode(mode) {
-      this.element.dataset.mode = mode;
-    }
-
-    /** @returns {HTMLAudioElement} */
-    get activeAudio() {
-      return this.audios[this.mode];
+    /** @returns {boolean} */
+    get isPlaying() {
+      return !this.masterAudio.paused && !this.masterAudio.ended;
     }
 
     /**
@@ -491,46 +512,69 @@
         }
         return loadWaveform(this.audios[trackMode], waveform, 52);
       });
-      // A full mixed-track fetch keeps seeking functional on static servers without HTTP range support.
-      const mixedTrackLoad = decodeAudio(this.audios.both).then(() => undefined);
-      await Promise.all([...waveformLoads, mixedTrackLoad]);
+      await Promise.all(waveformLoads);
     }
 
     bindEvents() {
-      this.bothButton.addEventListener('click', () => this.toggleMode('both'));
-      this.trackControls.forEach(({ button, mode }) => {
-        button.addEventListener('click', () => this.toggleMode(mode));
+      this.bothButton.addEventListener('click', () => { void this.togglePlayback(); });
+      this.muteControls.forEach(({ button, track }) => {
+        button.addEventListener('click', () => this.toggleMute(track));
       });
       this.waveforms.forEach((waveform) => {
         waveform.addEventListener('pointerdown', (event) => this.seekFromPointer(waveform, event));
         waveform.addEventListener('keydown', (event) => this.seekFromKeyboard(event));
       });
-      Object.values(this.audios).forEach((audio) => {
+      this.audioList.forEach((audio) => {
         ['loadedmetadata', 'timeupdate', 'seeked', 'play', 'pause', 'ended'].forEach((eventName) => {
           audio.addEventListener(eventName, () => this.handleAudioEvent(audio, eventName));
         });
       });
     }
 
-    /** @param {DualTrackMode} nextMode */
-    toggleMode(nextMode) {
-      const currentAudio = this.activeAudio;
-      if (this.mode === nextMode && !currentAudio.paused) {
-        currentAudio.pause();
+    /** Starts both speaker files from the same position or pauses them as one transport. @returns {Promise<void>} */
+    async togglePlayback() {
+      if (this.isPlaying) {
+        this.audioList.forEach((audio) => audio.pause());
         return;
       }
 
-      const resumeAt = currentAudio.currentTime;
-      this.mode = nextMode;
-      pauseAllExcept(this.activeAudio);
-      this.seek(resumeAt);
-      this.activeAudio.play().catch(() => {});
+      const duration = this.getDuration();
+      if (this.masterAudio.ended || this.masterAudio.currentTime >= duration) this.seek(0);
+      else this.seek(this.masterAudio.currentTime);
+      pauseAllExcept(this.audioList);
+      try {
+        // Calling play() for both elements in the same user gesture preserves autoplay compatibility.
+        await Promise.all(this.audioList.map((audio) => audio.play()));
+        this.synchronizeTracks();
+      } catch (error) {
+        this.audioList.forEach((audio) => audio.pause());
+        console.error('Unable to start synchronized speaker tracks.', error);
+      }
       this.update();
     }
 
-    /** Keeps all three files aligned so switching modes continues at the same moment. @param {number} seconds */
+    /** Muting changes only audibility; both files continue on the shared timeline. @param {SpeakerTrack} track */
+    toggleMute(track) {
+      this.audios[track].muted = !this.audios[track].muted;
+      this.update();
+    }
+
+    /** @returns {number} */
+    getDuration() {
+      return Number.isFinite(this.masterAudio.duration) ? this.masterAudio.duration : DEFAULT_AUDIO_DURATION_SECONDS;
+    }
+
+    /** Corrects meaningful native-media drift without continuously disturbing playback. */
+    synchronizeTracks() {
+      const followerAudio = this.audios.speaker1;
+      if (Math.abs(followerAudio.currentTime - this.masterAudio.currentTime) > TRACK_SYNC_TOLERANCE_SECONDS) {
+        followerAudio.currentTime = this.masterAudio.currentTime;
+      }
+    }
+
+    /** Keeps both files aligned when seeking from either waveform. @param {number} seconds */
     seek(seconds) {
-      Object.values(this.audios).forEach((audio) => {
+      this.audioList.forEach((audio) => {
         const duration = Number.isFinite(audio.duration) ? audio.duration : seconds;
         audio.currentTime = Math.min(duration, Math.max(0, seconds));
       });
@@ -542,11 +586,8 @@
      * @param {PointerEvent} event
      */
     seekFromPointer(waveform, event) {
-      const bounds = waveform.getBoundingClientRect();
-      if (bounds.width <= 0) return;
-      const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
-      const duration = Number.isFinite(this.activeAudio.duration) ? this.activeAudio.duration : 15.092;
-      this.seek(ratio * duration);
+      const ratio = getWaveformPointerRatio(waveform, event.clientX);
+      this.seek(ratio * this.getDuration());
       this.update();
     }
 
@@ -554,14 +595,17 @@
     seekFromKeyboard(event) {
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
       event.preventDefault();
-      this.seek(this.activeAudio.currentTime + (event.key === 'ArrowRight' ? 2 : -2));
+      this.seek(this.masterAudio.currentTime + (event.key === 'ArrowRight' ? KEYBOARD_SEEK_STEP_SECONDS : -KEYBOARD_SEEK_STEP_SECONDS));
       this.update();
     }
 
     /** @param {HTMLAudioElement} audio @param {string} eventName */
     handleAudioEvent(audio, eventName) {
-      if (audio !== this.activeAudio) return;
-      if (eventName === 'ended') this.seek(0);
+      if (audio === this.masterAudio && eventName === 'timeupdate' && this.isPlaying) this.synchronizeTracks();
+      if (audio === this.masterAudio && eventName === 'ended') {
+        this.audioList.forEach((trackAudio) => trackAudio.pause());
+        this.seek(0);
+      }
       this.update();
     }
 
@@ -583,14 +627,15 @@
         this.captionPanel.textContent = this.element.dataset.captionLoadError;
         return;
       }
-      const requestedSpeakers = this.mode === 'both' ? ['speaker0', 'speaker1'] : [this.mode];
+      /** @type {SpeakerTrack[]} */
+      const requestedSpeakers = ['speaker0', 'speaker1'];
       const captionData = requestedSpeakers.map((speakerMode) => this.getCaptionData(speakerMode));
       const firstCaptionStart = Math.min(...captionData
         .map(({ transcripts }) => transcripts[0]?.s)
         .filter(Number.isFinite));
-      const captionTime = this.activeAudio.paused && this.activeAudio.currentTime === 0 && Number.isFinite(firstCaptionStart)
+      const captionTime = !this.isPlaying && this.masterAudio.currentTime === 0 && Number.isFinite(firstCaptionStart)
         ? firstCaptionStart
-        : this.activeAudio.currentTime;
+        : this.masterAudio.currentTime;
       const fragment = document.createDocumentFragment();
       const isChinese = document.documentElement.lang === 'zh-CN';
 
@@ -610,7 +655,7 @@
           .forEach((word) => {
             const token = document.createElement('span');
             token.className = 'caption-word';
-            if (!this.activeAudio.paused && captionTime >= word.s && captionTime <= word.e) token.classList.add('active');
+            if (this.isPlaying && captionTime >= word.s && captionTime <= word.e) token.classList.add('active');
             token.textContent = word.w;
             row.appendChild(token);
           });
@@ -620,48 +665,52 @@
     }
 
     update() {
-      const duration = Number.isFinite(this.activeAudio.duration) ? this.activeAudio.duration : 15.092;
-      const ratio = duration > 0 ? this.activeAudio.currentTime / duration : 0;
+      const duration = this.getDuration();
+      const ratio = duration > 0 ? this.masterAudio.currentTime / duration : 0;
       const isChinese = document.documentElement.lang === 'zh-CN';
-      const isPlaying = !this.activeAudio.paused;
+      const isPlaying = this.isPlaying;
       const phaseLabel = this.reconstructionEndSeconds === null
         ? null
-        : (this.activeAudio.currentTime < this.reconstructionEndSeconds
+        : (this.masterAudio.currentTime < this.reconstructionEndSeconds
           ? (isChinese ? '当前阶段 · 原始声音重建' : 'Current phase · Original voice reconstruction')
           : (isChinese ? '当前阶段 · 对话扩展' : 'Current phase · Dialogue expansion'));
-      this.timeElement.textContent = `${formatTime(this.activeAudio.currentTime)} / ${formatTime(duration)}`;
+      this.timeElement.textContent = `${formatTime(this.masterAudio.currentTime)} / ${formatTime(duration)}`;
 
       this.waveforms.forEach((waveform) => {
         const bars = waveform.querySelectorAll('span');
-        bars.forEach((bar, index) => bar.classList.toggle('played', (index + 1) / bars.length <= ratio));
+        bars.forEach((bar, index) => bar.classList.toggle('played', (index + 0.5) / bars.length <= ratio));
         waveform.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
-        waveform.setAttribute('aria-valuetext', `${formatTime(this.activeAudio.currentTime)} / ${formatTime(duration)}`);
+        waveform.setAttribute('aria-valuetext', `${formatTime(this.masterAudio.currentTime)} / ${formatTime(duration)}`);
         const seekLabel = isChinese ? '音频波形，可点击跳转' : 'Audio waveform; click to seek';
         waveform.setAttribute('aria-label', phaseLabel ? `${seekLabel}${isChinese ? '。' : '. '}${phaseLabel}` : seekLabel);
         if (phaseLabel) waveform.dataset.phaseLabel = phaseLabel;
         else delete waveform.dataset.phaseLabel;
-        waveform.style.setProperty('--playhead-position', `${ratio * 100}%`);
+        updateWaveformPlayhead(waveform, ratio);
         waveform.classList.toggle('is-playing', isPlaying);
       });
 
-      const bothIsPlaying = this.mode === 'both' && isPlaying;
-      const bothLabel = bothIsPlaying
+      const bothLabel = isPlaying
         ? (isChinese ? '暂停双轨' : 'Pause both')
         : (isChinese ? '播放双轨' : 'Play both');
-      this.bothButton.classList.toggle('is-active', this.mode === 'both');
-      this.bothIcon.textContent = bothIsPlaying ? 'Ⅱ' : '▶';
+      this.bothButton.classList.toggle('is-active', isPlaying);
+      this.bothIcon.textContent = isPlaying ? 'Ⅱ' : '▶';
       this.bothLabel.textContent = bothLabel;
       this.bothButton.setAttribute('aria-label', bothLabel);
 
-      this.trackControls.forEach(({ button, mode, icon, label }) => {
-        const speakerNumber = mode === 'speaker0' ? '0' : '1';
-        const modeIsPlaying = this.mode === mode && isPlaying;
-        button.classList.toggle('is-active', this.mode === mode);
-        icon.textContent = modeIsPlaying ? 'Ⅱ' : '▶';
-        label.textContent = isChinese ? `说话人 ${speakerNumber}` : `Speaker ${speakerNumber}`;
-        button.setAttribute('aria-label', modeIsPlaying
-          ? (isChinese ? `暂停说话人 ${speakerNumber}` : `Pause Speaker ${speakerNumber}`)
-          : (isChinese ? `仅播放说话人 ${speakerNumber}` : `Play Speaker ${speakerNumber} only`));
+      this.muteControls.forEach(({ button, track, label, row }) => {
+        const speakerNumber = track === 'speaker0' ? '0' : '1';
+        const isMuted = this.audios[track].muted;
+        const actionLabel = isMuted
+          ? (isChinese ? `取消静音说话人 ${speakerNumber}` : `Unmute Speaker ${speakerNumber}`)
+          : (isChinese ? `静音说话人 ${speakerNumber}` : `Mute Speaker ${speakerNumber}`);
+        button.classList.toggle('is-active', isMuted);
+        button.setAttribute('aria-label', actionLabel);
+        button.setAttribute('aria-pressed', String(isMuted));
+        button.title = actionLabel;
+        label.textContent = isMuted
+          ? (isChinese ? '已静音' : 'Muted')
+          : (isChinese ? '静音' : 'Mute');
+        row.classList.toggle('is-muted', isMuted);
       });
       this.renderCaption();
     }
@@ -715,8 +764,7 @@
       } else audio.pause();
     });
     waveform.addEventListener('click', (event) => {
-      const bounds = waveform.getBoundingClientRect();
-      const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+      const ratio = getWaveformPointerRatio(waveform, event.clientX);
       if (Number.isFinite(audio.duration)) audio.currentTime = ratio * audio.duration;
     });
     waveform.addEventListener('keydown', (event) => {

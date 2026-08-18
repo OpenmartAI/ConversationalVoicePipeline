@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Conversational Voice curates speaker-separated and expanded full-duplex speech data from real conversations." />
     <title>Conversational Voice</title>
-    <link rel="stylesheet" href="assets/css/main.css?v=20260819e" />
+    <link rel="stylesheet" href="assets/css/main.css?v=20260819k" />
   </head>
   <body>
     <div class="container utility">
@@ -90,18 +90,17 @@
                 <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="SepFormer input: original recording" data-zh-label="SepFormer 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
                 <div class="audio-case dual-track-case">
                   <div class="audio-case-head"><h5><span class="en">2 · Speaker tracks</span><span class="zh">2 · 说话人声轨</span></h5><span class="audio-format">8 kHz</span></div>
-                  <div class="dual-track-player" data-mode="both">
+                  <div class="dual-track-player">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sepformer/s0.wav"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sepformer/s1.wav"></audio>
-                    <audio preload="metadata" data-track-audio="both" src="assets/separation/separation-sepformer/seperated-and-mixed.wav"></audio>
                     <div class="dual-toolbar">
                       <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
                       <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 同时播放两条声轨</span></span>
                       <span class="dual-time">0:00 / 0:15</span>
                     </div>
                     <div class="dual-tracks">
-                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker0"><span class="track-speaker-label"><span class="en">Speaker 0</span><span class="zh">说话人 0</span></span><button class="track-mute" type="button" data-track-mute="speaker0" aria-label="Mute Speaker 0" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><span class="track-speaker-label"><span class="en">Speaker 1</span><span class="zh">说话人 1</span></span><button class="track-mute" type="button" data-track-mute="speaker1" aria-label="Mute Speaker 1" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
                     </div>
                   </div>
                 </div>
@@ -118,18 +117,17 @@
                 <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="Conversational Voice input: original recording" data-zh-label="Conversational Voice 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
                 <div class="audio-case dual-track-case">
                   <div class="audio-case-head"><h5><span class="en">2 · Speaker tracks</span><span class="zh">2 · 说话人声轨</span></h5><span class="audio-format">16 kHz</span></div>
-                  <div class="dual-track-player" data-mode="both" data-caption-source="separation">
+                  <div class="dual-track-player" data-caption-source="separation">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sidon-our/s0.wav"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sidon-our/s1.wav"></audio>
-                    <audio preload="metadata" data-track-audio="both" src="assets/separation/separation-sidon-our/seperated-and-mixed.wav"></audio>
                     <div class="dual-toolbar">
                       <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
                       <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 同时播放两条声轨</span></span>
                       <span class="dual-time">0:00 / 0:15</span>
                     </div>
                     <div class="dual-tracks">
-                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker0"><span class="track-speaker-label"><span class="en">Speaker 0</span><span class="zh">说话人 0</span></span><button class="track-mute" type="button" data-track-mute="speaker0" aria-label="Mute Speaker 0" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><span class="track-speaker-label"><span class="en">Speaker 1</span><span class="zh">说话人 1</span></span><button class="track-mute" type="button" data-track-mute="speaker1" aria-label="Mute Speaker 1" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
                     </div>
                     <div class="live-caption dual-caption" aria-live="off"></div>
                   </div>
@@ -169,18 +167,17 @@
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
                   <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">扩展后的说话人声轨</span></h5><span class="audio-format">24 kHz</span></div>
-                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen" data-reconstruction-end="24.3" data-transcript-url="assets/regeneration/old-movie/transcript.json?v=20260811a" data-alignment-url="assets/regeneration/old-movie/word-alignment.json?v=20260811a">
+                  <div class="dual-track-player" data-caption-source="regeneration" data-caption-prefix="regen" data-reconstruction-end="24.3" data-transcript-url="assets/regeneration/old-movie/transcript.json?v=20260811a" data-alignment-url="assets/regeneration/old-movie/word-alignment.json?v=20260811a">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/old-movie/speaker-0.wav?v=20260811a"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/old-movie/speaker-1.wav?v=20260811a"></audio>
-                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/old-movie/combined.wav?v=20260811a"></audio>
                     <div class="dual-toolbar">
                       <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
                       <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 同时播放两条声轨</span></span>
                       <span class="dual-time">0:00 / 0:19</span>
                     </div>
                     <div class="dual-tracks">
-                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker0"><span class="track-speaker-label"><span class="en">Speaker 0</span><span class="zh">说话人 0</span></span><button class="track-mute" type="button" data-track-mute="speaker0" aria-label="Mute Speaker 0" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><span class="track-speaker-label"><span class="en">Speaker 1</span><span class="zh">说话人 1</span></span><button class="track-mute" type="button" data-track-mute="speaker1" aria-label="Mute Speaker 1" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
                     </div>
                     <div class="live-caption dual-caption" aria-live="off"></div>
                   </div>
@@ -205,18 +202,17 @@
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
                   <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">扩展后的说话人声轨</span></h5><span class="audio-format">24 kHz</span></div>
-                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-our-1" data-reconstruction-end="18.3" data-transcript-url="assets/regeneration/tv-talk-show/transcript.json?v=20260811b" data-alignment-url="assets/regeneration/tv-talk-show/word-alignment.json?v=20260811b">
+                  <div class="dual-track-player" data-caption-source="regeneration" data-caption-prefix="regen-our-1" data-reconstruction-end="18.3" data-transcript-url="assets/regeneration/tv-talk-show/transcript.json?v=20260811b" data-alignment-url="assets/regeneration/tv-talk-show/word-alignment.json?v=20260811b">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/tv-talk-show/speaker-0.wav?v=20260811b"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/tv-talk-show/speaker-1.wav?v=20260811b"></audio>
-                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/tv-talk-show/combined.wav?v=20260811b"></audio>
                     <div class="dual-toolbar">
                       <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
                       <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 同时播放两条声轨</span></span>
                       <span class="dual-time">0:00 / 2:20</span>
                     </div>
                     <div class="dual-tracks">
-                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker0"><span class="track-speaker-label"><span class="en">Speaker 0</span><span class="zh">说话人 0</span></span><button class="track-mute" type="button" data-track-mute="speaker0" aria-label="Mute Speaker 0" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><span class="track-speaker-label"><span class="en">Speaker 1</span><span class="zh">说话人 1</span></span><button class="track-mute" type="button" data-track-mute="speaker1" aria-label="Mute Speaker 1" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
                     </div>
                     <div class="live-caption dual-caption" aria-live="off"></div>
                   </div>
@@ -241,18 +237,17 @@
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
                   <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">扩展后的说话人声轨</span></h5><span class="audio-format">24 kHz</span></div>
-                  <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-car" data-reconstruction-end="32.725" data-transcript-url="assets/regeneration/youtube-car-video/transcript.json?v=20260813a" data-alignment-url="assets/regeneration/youtube-car-video/word-alignment.json?v=20260813a">
+                  <div class="dual-track-player" data-caption-source="regeneration" data-caption-prefix="regen-car" data-reconstruction-end="32.725" data-transcript-url="assets/regeneration/youtube-car-video/transcript.json?v=20260813a" data-alignment-url="assets/regeneration/youtube-car-video/word-alignment.json?v=20260813a">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/youtube-car-video/speaker-0.wav?v=20260813b"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/youtube-car-video/speaker-1.wav?v=20260813b"></audio>
-                    <audio preload="metadata" data-track-audio="both" src="assets/regeneration/youtube-car-video/combined.wav?v=20260813b"></audio>
                     <div class="dual-toolbar">
                       <button class="dual-play-both" type="button"><span class="dual-play-icon">▶</span><span class="dual-play-label">Play both</span></button>
                       <span class="dual-default-hint"><span class="en">Default · both tracks</span><span class="zh">默认 · 同时播放两条声轨</span></span>
                       <span class="dual-time">0:00 / 2:17</span>
                     </div>
                     <div class="dual-tracks">
-                      <div class="dual-track" data-track="speaker0"><button class="track-play" type="button" data-track-button="speaker0"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 0 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
-                      <div class="dual-track" data-track="speaker1"><button class="track-play" type="button" data-track-button="speaker1"><span class="track-play-icon">▶</span><span class="track-play-label">Speaker 1 only</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker0"><span class="track-speaker-label"><span class="en">Speaker 0</span><span class="zh">说话人 0</span></span><button class="track-mute" type="button" data-track-mute="speaker0" aria-label="Mute Speaker 0" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+                      <div class="dual-track" data-track="speaker1"><span class="track-speaker-label"><span class="en">Speaker 1</span><span class="zh">说话人 1</span></span><button class="track-mute" type="button" data-track-mute="speaker1" aria-label="Mute Speaker 1" aria-pressed="false"><span class="track-mute-icon" aria-hidden="true"></span><span class="track-mute-label">Mute</span></button><div class="dual-waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
                     </div>
                     <div class="live-caption dual-caption" aria-live="off"></div>
                   </div>
@@ -306,6 +301,6 @@
 
     <script id="transcript-data" type="application/json">{"0":[{"s":0.0,"e":1.76,"text":"It's my first language and I couldn't read it."},{"s":1.84,"e":4.32,"text":"That's when I was like, I need to go back in touch."},{"s":5.12,"e":8.8,"text":"Yeah, I, I have to give it to my dad to translate it for me."},{"s":9.04,"e":11.76,"text":"And my dad's reading my childhood diary just laughing."},{"s":11.84,"e":14.0,"text":"Like, haha, haha"}],"1":[{"s":3.685,"e":5.445,"text":"and get somebody to read it to you."},{"s":5.685,"e":5.925,"text":"Yeah."},{"s":8.689,"e":9.409,"text":"It's you."}]}</script>
 
-    <script src="assets/js/main.js?v=20260818a"></script>
+    <script src="assets/js/main.js?v=20260819e"></script>
   </body>
 </html>
