@@ -4,26 +4,26 @@
 
 **Full-Duplex Speech Data from Real Conversations**
 
-Conversational Voice transforms **any** real world audio into high-quality
-training data for full-duplex speech models. It discovers genuine two-speaker
-exchanges, verifies speaker-pure tracks, annotates timing and persona, then
-expands and re-performs the conversation while preserving realistic turn-taking,
-pauses, overlap, and paralinguistic behavior.
+Conversational Voice converts a broad range of real-world recordings into
+curated training data for full-duplex speech models. The pipeline identifies
+two-speaker exchanges, separates the speakers into individual tracks, validates
+speaker consistency, annotates timing and speaker attributes, and uses each
+exchange as the basis for new dialogue while preserving its turn-taking, pauses,
+overlap, and paralinguistic cues.
 
-**[Explore the project page, architecture, and audio comparisons →](https://openmartai.github.io/ConversationalVoicePipeline/)**
+**[Explore the project page, pipeline, and method comparisons →](https://openmartai.github.io/ConversationalVoicePipeline/)**
 
 ## What it produces
 
-Every accepted conversation passes through the complete pipeline and produces
-both outputs together: high-quality separated data derived from the original
-recording, and regenerated expansion data grounded in the same real
-conversation.
+Each conversation that passes screening and quality control yields two datasets:
+validated speaker-separated tracks from the source recording and new dialogue
+derived from the same exchange.
 
-- **Delivered together · High-quality separated data:** clean, time-aligned,
-  speaker-pure tracks extracted from the original recording.
-- **Delivered together · Regenerated expansion data:** new, controllable
-  dialogue grounded in the content and interaction patterns of the same real
-  conversation.
+- **Speaker-separated source data:** a clean, time-aligned track for each
+  speaker, extracted from the source recording and validated for speaker
+  consistency.
+- **Conversation-grounded expansion data:** controllable new dialogue that
+  retains the context and interaction patterns of the source exchange.
 
 Large payloads stay in object storage. Celery messages contain only stable UUIDs,
 and PostgreSQL records the lineage and state of every source, audio part, and
@@ -56,7 +56,7 @@ raw_audios (one normalized source recording)
 - AWS S3 or an S3-compatible object store
 - A Hugging Face token with access to the configured VAD, diarization,
   separation, and transcription models
-- An OpenRouter API key for persona generation, dialogue generation,
+- An OpenRouter API key for speaker-profile extraction, dialogue expansion,
   reference transcription, and speech synthesis
 - An NVIDIA CUDA host for the supported separation and transcription runtime;
 
@@ -170,8 +170,8 @@ under deterministic keys in the configured bucket.
 | Quality filter | Diarized audio part | Clean two-speaker `chunks` rows |
 | Separation | Chunk UUID | Two fixed speaker tracks and audited speaker mapping |
 | Transcription | Separated English chunk | Transcript and word-alignment artifacts |
-| Persona | Transcribed chunk | Structured scene and vocal-persona document |
-| Extension | Persona-complete chunk | Continuation script, transcript, and two synthesized tracks |
+| Speaker profile (`persona_chunk`) | Transcribed chunk | Structured scene and speaker-profile document |
+| Dialogue expansion (`extend_chunk`) | Profile-complete chunk | New dialogue script, transcript, and two synthesized tracks |
 
 Task names, queue names, UUID arguments, and successor relationships are
 defined centrally in
@@ -213,6 +213,13 @@ project README.
 
 ## License
 
-The project-authored software is released under the [MIT License](LICENSE).
+The project-authored software is released under the
+[Business Source License 1.1](LICENSE). Non-production use is permitted, and
+the Additional Use Grant permits non-commercial academic research, education,
+evaluation, testing, and benchmarking in production. Other production use
+requires a separate commercial license from AveraLabs. Each version converts
+to the MIT License four years after its first public distribution under the
+Business Source License 1.1.
+
 See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for third-party licenses and
-attributions.
+attributions. The project license does not replace or override those terms.
