@@ -4,10 +4,11 @@ Last reviewed: 2026-08-17
 
 ## Scope
 
-The project-authored software is licensed under the MIT License in `LICENSE`.
-That license does not replace or override the licenses of third-party software,
-model weights, services, media, data, or other materials used by or stored in
-this repository. Those materials remain subject to their own terms.
+The project-authored software is licensed under the Business Source License
+1.1 in `LICENSE`, with a four-year change to the MIT License for each version.
+That license does not replace or override the licenses of third-party
+software, model weights, services, media, data, or other materials used by or
+stored in this repository. Those materials remain subject to their own terms.
 
 This file records the third-party materials that are material to the project's
 current source and default runtime. It must accompany source and binary
@@ -19,10 +20,10 @@ third-party artifacts included in its distribution.
 
 The default pipeline uses the DiariZen and DialogueSidon model weights. Both
 are offered under Creative Commons Attribution-NonCommercial 4.0 International
-(`CC-BY-NC-4.0`). The project's MIT License does not grant commercial-use
-rights for those weights. A deployment using either model must comply with the
-non-commercial restriction or obtain separate permission from the applicable
-rights holder.
+(`CC-BY-NC-4.0`). The project's Business Source License does not grant
+commercial-use rights for those weights. A deployment using either model must
+comply with the non-commercial restriction or obtain separate permission from
+the applicable rights holder.
 
 Replacing a restricted model does not by itself establish that the resulting
 deployment is compliant. The replacement and all other included dependencies,
@@ -183,8 +184,8 @@ in the source-code section above apply to this model's MIT notice.
 
 The Python dependencies are declared in each component's `pyproject.toml` and
 resolved in the adjacent `uv.lock`. These packages and their transitive
-dependencies are not relicensed under the project's MIT License. The source
-repository does not vendor their package contents.
+dependencies are not relicensed under the project's Business Source License.
+The source repository does not vendor their package contents.
 
 An executable, wheel, container image, virtual-machine image, or other binary
 distribution may include those packages. Its distributor must produce a
