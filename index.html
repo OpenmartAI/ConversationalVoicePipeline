@@ -33,7 +33,7 @@
     <main class="container">
       <section id="introduction">
         <h2><span class="en">Introduction</span><span class="zh">项目介绍</span></h2>
-        <p class="lead en">Conversational Voice converts a broad range of real-world recordings into curated training data for full-duplex speech models. The pipeline identifies two-speaker exchanges, isolates and validates one track per speaker, annotates timing and speaker attributes, and uses each exchange as the basis for new dialogue while preserving its turn-taking, pauses, overlap, and paralinguistic cues.</p>
+        <p class="lead en">Conversational Voice converts a broad range of real-world recordings into curated training data for full-duplex speech models. The pipeline identifies two-speaker exchanges, separates the speakers into individual tracks, validates speaker consistency, annotates timing and speaker attributes, and uses each exchange as the basis for new dialogue while preserving its turn-taking, pauses, overlap, and paralinguistic cues.</p>
         <p class="lead zh">Conversational Voice 将 podcast、电视采访和电影对白等长音频转化为全双工语音模型的高质量训练数据。管线发现真实的双人对谈，验证说话人纯净声轨，标注时序与 Persona，并在保留真实话轮、停顿、重叠和副语言行为的基础上进行扩写与重新演绎。</p>
       </section>
 
@@ -55,13 +55,13 @@
           </div>
           <p class="lane-label"><span class="en">Conversation-grounded expansion & control</span><span class="zh">基于真实场景的扩写与定制</span></p>
           <div class="pipeline-lane">
-            <div class="pipeline-node our-node"><strong><span class="en">Verified speaker tracks</span><span class="zh">已验证双轨</span></strong><span><span class="en">One isolated audio track per speaker</span><span class="zh">两个说话人的声音被分离到两个独立的声轨文件中</span></span></div>
+            <div class="pipeline-node our-node"><strong><span class="en">Verified speaker tracks</span><span class="zh">已验证双轨</span></strong><span><span class="en">One track per speaker, validated for identity consistency</span><span class="zh">两个说话人的声音被分离到两个独立的声轨文件中</span></span></div>
             <div class="pipeline-node"><strong><span class="en">Transcription</span><span class="zh">转写</span></strong><span><span class="en">Word- and utterance-level timestamps</span><span class="zh">词级与话轮级时间戳</span></span><code class="model-name">nvidia/parakeet-tdt-0.6b-v3</code></div>
             <div class="pipeline-node"><strong><span class="en">Speaker profile</span><span class="zh">Persona 建模</span></strong><span><span class="en">Timbre · cadence · speaking habits</span><span class="zh">音色 · 节奏 · 表达习惯</span></span></div>
             <div class="pipeline-node"><strong><span class="en">Grounded expansion</span><span class="zh">有依据的扩写</span></strong><span><span class="en">Content · pauses · overlap</span><span class="zh">内容 · 停顿 · 重叠</span></span></div>
             <div class="pipeline-node our-node"><strong><span class="en">New dialogue audio</span><span class="zh">新对话音频</span></strong><span><span class="en">Expressive dialogue derived from real exchanges</span><span class="zh">基于真实对话生成的富有情感的对话</span></span><code class="model-name"><b>voicedesign &amp; voiceclone</b></code></div>
           </div>
-          <figcaption><span class="en">The first stage isolates and validates real two-speaker exchanges; the second uses them to produce controllable training data.</span><span class="zh">管线先获得可靠的真实对话，再以其为依据进行可控的数据扩展。</span></figcaption>
+          <figcaption><span class="en">The first stage selects real two-speaker exchanges, separates their speakers, and validates the resulting tracks; the second uses those exchanges to produce controllable training data.</span><span class="zh">管线先获得可靠的真实对话，再以其为依据进行可控的数据扩展。</span></figcaption>
         </figure>
       </section>
 
@@ -70,14 +70,14 @@
         <article class="step" id="separation">
           <h3><span class="en">Speaker Separation</span><span class="zh">说话人分离</span></h3>
           <div class="step-intro">
-            <p class="en">Off-the-shelf separation systems can split one speaker across multiple tracks, merge both speakers into a single track, or introduce substantial distortion. Any of these failures compromises training data for full-duplex speech models, which depend on consistent speaker identity, clean signals, and accurate time alignment.</p>
+            <p class="en">Several existing models support speaker separation, but their outputs still exhibit characteristic speaker-assignment errors: speech from a single speaker is often fragmented across multiple tracks, while speech from multiple speakers may be collapsed into one track. Either failure compromises training data for full-duplex speech models, which depend on consistent speaker identity, clean signals, and accurate time alignment.</p>
             <p class="zh">传统分离模型可能把同一个人拆到不同音轨、把两个人合入同一音轨，或者严重破坏语音质量。这类低质量分离结果基本无法用于全双工语音模型训练，因为稳定的说话人身份、清晰的人声和准确的时间对齐都是最基础的数据要求。</p>
             <p class="en">Based on an evaluation of several candidate models, we assembled a coordinated separation workflow. VAD first segments hour-scale recordings at natural boundaries into roughly 15-minute parts; running Diarizen on these shorter parts improves speaker attribution. After filtering music and low-SNR regions, a greedy dynamic-window search selects the longest high-quality segments that contain exactly two speakers, sustain reciprocal exchange, and provide enough speech from each person for robust DialogueSidon separation. These constraints exclude extended monologues and give DialogueSidon balanced evidence for both speakers. Post-separation speaker-consistency checks flag identity splits and merges. Chunks that fail the quality gate are either re-separated or excluded.</p>
             <p class="zh">在分析并比较多个模型的特性后，我们将各自优势组合为一套协同工作的流程。首先利用 VAD 沿自然边界将小时级原始素材切分为约 15 分钟的片段，再交给 diarization 处理，从而提高 Diarizen 的说话人识别性能。完成音乐筛查和低 SNR 过滤后，系统通过动态窗口进行贪心搜索，捕获仅包含两位说话人、保持充分轮流互动且双方语音时长充足的最长高质量片段，以支持 Sidon 可靠分离。这些约束能够过滤大段单人独白，并为 Sidon 提供更均衡的两人语音依据。分离完成后，系统继续执行说话人一致性检查，检测同一个人被拆入不同音轨或两个人被合入同一音轨的情况。未通过检查的片段会被标记为分离质量异常，后续可重新执行分离或直接剔除。</p>
           </div>
           <div class="strategy-note">
             <div><strong><span class="en">Baseline</span><span class="zh">之前的方案</span></strong><p><span class="en">SepFormer operates directly on each selected chunk, with no downstream check for speaker-identity consistency.</span><span class="zh">SepFormer 直接分离选定片段，缺少后续的说话人身份一致性质量门。</span></p></div>
-            <div><strong><span class="en">Proposed pipeline</span><span class="zh">我们的优化</span></strong><p><span class="en">Our pipeline couples dynamic two-speaker windowing with DialogueSidon separation, speaker-consistency checks, selective retries, and light background-noise suppression.</span><span class="zh">OUR 管线结合动态双人窗口、Sidon 分离、身份一致性检测、自动重试和轻量底噪过滤。</span></p></div>
+            <div><strong><span class="en">Proposed pipeline</span><span class="zh">我们的优化</span></strong><p><span class="en">Conversational Voice couples dynamic two-speaker windowing with DialogueSidon separation, speaker-consistency checks, selective retries, and light background-noise suppression.</span><span class="zh">OUR 管线结合动态双人窗口、Sidon 分离、身份一致性检测、自动重试和轻量底噪过滤。</span></p></div>
           </div>
 
           <div class="comparison-grid">
@@ -112,13 +112,13 @@
             <section class="method-panel our" aria-label="Proposed separation result">
               <header class="method-header">
                 <div class="method-kicker"><span class="our-badge">Ours</span><span>Conversational Voice</span></div>
-                <h4>DialogueSidon + Conversational Voice</h4>
+                <h4>Conversational Voice</h4>
                 <div class="source-path">assets/separation/separation-sidon-our/</div>
               </header>
               <div class="audio-list">
                 <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="Proposed pipeline input: original recording" data-zh-label="OUR 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
                 <div class="audio-case dual-track-case">
-                  <div class="audio-case-head"><h5><span class="en">2 · Proposed speaker tracks</span><span class="zh">2 · OUR 说话人双轨</span></h5><span class="audio-format">16 kHz</span></div>
+                  <div class="audio-case-head"><h5><span class="en">2 · Speaker tracks</span><span class="zh">2 · 说话人双轨</span></h5><span class="audio-format">16 kHz</span></div>
                   <div class="dual-track-player" data-mode="both" data-caption-source="separation">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sidon-our/s0.wav"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sidon-our/s1.wav"></audio>
@@ -140,7 +140,7 @@
           </div>
           <div class="finding-list">
             <div class="finding"><strong><span class="en">Speaker identity</span><span class="zh">身份一致性</span></strong><span class="en">Each speaker remains assigned to a consistent track.</span><span class="zh">OUR 将每个人稳定保留在独立声轨。</span></div>
-            <div class="finding"><strong><span class="en">Signal quality</span><span class="zh">声学质量</span></strong><span class="en">The proposed tracks retain the source recording's 16 kHz sample rate.</span><span class="zh">OUR 保留更清晰的 16 kHz 人声。</span></div>
+            <div class="finding"><strong><span class="en">Signal quality</span><span class="zh">声学质量</span></strong><span class="en">The separated tracks maintain good overall signal quality, with clear speech and limited separation artifacts.</span><span class="zh">分离后的声轨整体质量较好，语音清晰且分离伪影较少。</span></div>
             <div class="finding"><strong><span class="en">Residual noise</span><span class="zh">噪声控制</span></strong><span class="en">Light suppression reduces background noise without aggressive denoising.</span><span class="zh">OUR 同时过滤了部分底噪。</span></div>
           </div>
         </article>
