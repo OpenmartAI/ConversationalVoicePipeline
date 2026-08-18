@@ -1,4 +1,6 @@
-# AveraLabs Voice Pipeline
+<img src="assets/averalabs-logo.png" alt="AveraLabs" height="28" />
+
+# Conversational Voice
 
 **Full-Duplex Speech Data from Real Conversations**
 

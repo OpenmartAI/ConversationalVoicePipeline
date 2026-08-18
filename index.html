@@ -1,6 +1,6 @@
 <!doctype html>
 <!--
-  AveraLabs Voice Pipeline — self-contained static project page.
+  Conversational Voice — self-contained static project page.
   Usage: open index.html directly in a modern browser. No build step is required.
   Audio assets live under assets/. Waveform peaks and word alignment are embedded
   so the custom players work reliably from file:// URLs.
@@ -10,7 +10,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="AveraLabs builds high-quality full-duplex speech data from real conversations." />
-    <title>AveraLabs Voice Pipeline</title>
+    <title>Conversational Voice</title>
     <style>
       :root {
         --text: #26282b;
@@ -45,10 +45,13 @@
       .utility {
         min-height: 48px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
+        gap: 12px;
         border-bottom: 1px solid #eceef0;
       }
+      .brand-mark { display: flex; align-items: center; }
+      .brand-mark img { display: block; height: 24px; width: auto; }
       .language-toggle {
         padding: 6px 10px;
         color: #444;
@@ -62,13 +65,20 @@
       .project-header { padding: 58px 0 46px; text-align: center; }
       .project-header h1 {
         max-width: 860px;
-        margin: 0 auto 18px;
+        margin: 0 auto 12px;
         font-size: clamp(35px, 4vw, 50px);
         line-height: 1.14;
         letter-spacing: -.035em;
         font-weight: 650;
       }
       .title-line { display: block; }
+      .project-header .tagline {
+        max-width: 720px;
+        margin: 0 auto 12px;
+        font-size: clamp(21px, 2.4vw, 28px);
+        line-height: 1.32;
+        color: #3c4147;
+      }
       .project-header .meta { margin: 0; color: var(--muted); }
       .project-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 23px; }
       .project-nav a {
@@ -435,14 +445,13 @@
   </head>
   <body>
     <div class="container utility">
+      <span class="brand-mark"><img src="assets/averalabs-logo.png" alt="AveraLabs" width="348" height="83" /></span>
       <button class="language-toggle" type="button" aria-label="切换为中文"><span class="en">中文</span><span class="zh">English</span></button>
     </div>
 
     <header class="container project-header">
-      <h1>
-        <span class="en"><span class="title-line">AveraLabs Voice Pipeline</span><span class="title-line">Full-Duplex Speech Data</span><span class="title-line">from Real Conversations</span></span>
-        <span class="zh"><span class="title-line">AveraLabs 语音管线</span><span class="title-line">从真实对话构建</span><span class="title-line">全双工语音数据</span></span>
-      </h1>
+      <h1><span class="title-line">Conversational Voice</span></h1>
+      <p class="tagline"><span class="en">Full-Duplex Speech Data from Real Conversations</span><span class="zh">从真实对话构建全双工语音数据</span></p>
       <p class="meta">Richard Yucheng He, Baodong Cao, Chen Xu, Yihang Liu, Tairan Chen · Aug 20, 2026</p>
       <nav class="project-nav" aria-label="Project sections">
         <a href="#introduction"><span class="en">Introduction</span><span class="zh">介绍</span></a>
@@ -699,7 +708,7 @@
 
 
 
-    <footer class="container">AveraLabs Voice Pipeline · Technical Project Page</footer>
+    <footer class="container">Conversational Voice · AveraLabs · Technical Project Page</footer>
 
     <script id="alignment-data" type="application/json">{"0":[{"w":"It's","s":0.0,"e":0.24},{"w":"my","s":0.24,"e":0.4},{"w":"first","s":0.4,"e":0.56},{"w":"language","s":0.56,"e":0.96},{"w":"and","s":0.96,"e":1.12},{"w":"I","s":1.12,"e":1.2},{"w":"couldn't","s":1.2,"e":1.44},{"w":"read","s":1.44,"e":1.6},{"w":"it.","s":1.6,"e":1.76},{"w":"That's","s":1.84,"e":2.08},{"w":"when","s":2.08,"e":2.16},{"w":"I","s":2.16,"e":2.24},{"w":"was","s":2.24,"e":2.4},{"w":"like,","s":2.4,"e":2.48},{"w":"I","s":2.64,"e":2.8},{"w":"need","s":2.8,"e":2.88},{"w":"to","s":2.88,"e":3.04},{"w":"go","s":3.04,"e":3.2},{"w":"back","s":3.2,"e":3.36},{"w":"in","s":3.36,"e":3.68},{"w":"touch.","s":3.68,"e":4.32},{"w":"Yeah,","s":5.12,"e":5.44},{"w":"I,","s":5.52,"e":5.6},{"w":"I","s":6.08,"e":6.16},{"w":"have","s":6.24,"e":6.32},{"w":"to","s":6.48,"e":6.64},{"w":"give","s":6.64,"e":6.8},{"w":"it","s":6.8,"e":6.88},{"w":"to","s":6.88,"e":7.04},{"w":"my","s":7.04,"e":7.2},{"w":"dad","s":7.2,"e":7.52},{"w":"to","s":7.52,"e":7.76},{"w":"translate","s":7.76,"e":8.24},{"w":"it","s":8.24,"e":8.4},{"w":"for","s":8.4,"e":8.64},{"w":"me.","s":8.64,"e":8.8},{"w":"And","s":9.04,"e":9.28},{"w":"my","s":9.28,"e":9.44},{"w":"dad's","s":9.44,"e":9.84},{"w":"reading","s":9.84,"e":10.16},{"w":"my","s":10.16,"e":10.32},{"w":"childhood","s":10.32,"e":10.8},{"w":"diary","s":10.8,"e":11.2},{"w":"just","s":11.28,"e":11.44},{"w":"laughing.","s":11.44,"e":11.76},{"w":"Like","s":11.84,"e":12.0},{"w":"haha,","s":12.0,"e":12.5},{"w":"haha","s":12.5,"e":14}],"1":[{"w":"Okay.","s":0.16,"e":0.24},{"w":"and","s":3.685,"e":3.845},{"w":"get","s":4.005,"e":4.245},{"w":"somebody","s":4.245,"e":4.565},{"w":"to","s":4.565,"e":4.645},{"w":"read","s":4.645,"e":4.965},{"w":"it","s":4.965,"e":5.125},{"w":"to","s":5.125,"e":5.285},{"w":"you.","s":5.285,"e":5.445},{"w":"Yeah.","s":5.685,"e":5.925},{"w":"It's","s":8.689,"e":9.169},{"w":"you.","s":9.169,"e":9.409}]}</script>
 
@@ -944,7 +953,7 @@
       function applyLanguage(language) {
         const isChinese = language === 'zh-CN';
         document.documentElement.lang = language;
-        document.title = isChinese ? 'AveraLabs 语音管线' : 'AveraLabs Voice Pipeline';
+        document.title = 'Conversational Voice';
         languageToggle.setAttribute('aria-label', isChinese ? 'Switch to English' : '切换为中文');
         updatePlayerLabels();
         requestAnimationFrame(alignComparisonRows);
