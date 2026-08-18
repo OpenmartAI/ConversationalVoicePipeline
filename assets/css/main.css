@@ -275,6 +275,26 @@ p {
 .model-name + .model-name {
   margin-top: 4px;
 }
+.model-link {
+  color: inherit;
+  text-decoration-color: #a1a8b0;
+  text-decoration-thickness: .08em;
+  text-underline-offset: .16em;
+}
+.model-link:hover {
+  color: var(--our);
+  text-decoration-color: currentColor;
+}
+.model-link:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--our);
+  outline-offset: 2px;
+}
+.model-name .model-link {
+  display: block;
+  margin: -6px -7px;
+  padding: 6px 7px;
+}
 .pipeline-node.our-node {
   background: var(--our-soft);
   border-color: #7eac91;
