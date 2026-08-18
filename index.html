@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Conversational Voice curates speaker-separated and expanded full-duplex speech data from real conversations." />
     <title>Conversational Voice</title>
-    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/main.css?v=20260819b" />
   </head>
   <body>
     <div class="container utility">
@@ -24,6 +24,7 @@
       <p class="tagline"><span class="en">Full-Duplex Speech Data from Real Conversations</span><span class="zh">源自真实对话的全双工语音数据</span></p>
       <p class="meta">Richard Yucheng He, Baodong Cao, Chen Xu, Yihang Liu, Tairan Chen · Aug 20, 2026</p>
       <nav class="project-nav" aria-label="Project sections">
+        <span class="project-nav-placeholder"><span class="en">arXiv Paper</span><span class="zh">arXiv 论文</span></span>
         <a href="//github.com/avera-labs/ConversationalVoice" target="_blank" rel="noopener noreferrer"><span class="en">Project Code</span><span class="zh">项目代码</span></a>
       </nav>
     </header>
@@ -37,7 +38,7 @@
 
       <section id="pipeline">
         <h2><span class="en">Pipeline</span><span class="zh">处理流程</span></h2>
-        <p class="pipeline-output-intro"><span class="en">Each conversation that passes screening and quality control yields two datasets: validated speaker-separated tracks from the source recording and new dialogue derived from the same exchange.</span><span class="zh">每段通过筛选与质检的对话都会产出两类数据：从源录音中得到并通过验证的说话人分离声轨，以及基于同一段对话扩展的新对话。</span></p>
+        <p class="pipeline-output-intro lead"><span class="en">Each conversation that passes screening and quality control yields two datasets: validated speaker-separated tracks from the source recording and new dialogue derived from the same exchange.</span><span class="zh">每段通过筛选与质检的对话都会产出两类数据：从源录音中得到并通过验证的说话人分离声轨，以及基于同一段对话扩展的新对话。</span></p>
         <div class="pipeline-results">
           <div class="pipeline-result"><strong><span class="en">Speaker-separated source data</span><span class="zh">说话人分离数据</span></strong><span><span class="en">A clean, time-aligned track for each speaker, extracted from the source recording and validated for speaker consistency.</span><span class="zh">从源录音中为每位说话人提取清晰且时间对齐的独立声轨，并验证说话人身份一致性。</span></span></div>
           <div class="pipeline-result"><strong><span class="en">Conversation-grounded expansion data</span><span class="zh">基于对话的扩展数据</span></strong><span><span class="en">Controllable new dialogue that retains the context and interaction patterns of the source exchange.</span><span class="zh">以源对话的上下文和互动模式为基础生成的可控新对话。</span></span></div>
@@ -269,8 +270,8 @@
 
       <section id="license">
         <h2><span class="en">License</span><span class="zh">许可证</span></h2>
-        <p class="lead en">Project-authored code is licensed under the <a href="LICENSE">Business Source License 1.1</a> and converts to the MIT License four years after release. Non-production and non-commercial academic use are permitted; other production use requires a commercial license from AveraLabs. Third-party components, including model weights, remain subject to their own terms; see the <a href="THIRD_PARTY_NOTICES.md">Third-Party Notices</a>.</p>
-        <p class="lead zh">项目自研代码采用 <a href="LICENSE">Business Source License 1.1</a>，发布四年后转为 MIT License。允许非生产和非商业学术使用；其他生产用途需取得 AveraLabs 的商业授权。模型权重等第三方组件仍遵循各自条款，详见<a href="THIRD_PARTY_NOTICES.md">第三方声明</a>。</p>
+        <p class="en">Project-authored code is licensed under the <a href="LICENSE">Business Source License 1.1</a> and converts to the MIT License four years after release. Non-production and non-commercial academic use are permitted; other production use requires a commercial license from AveraLabs. Third-party components, including model weights, remain subject to their own terms; see the <a href="THIRD_PARTY_NOTICES.md">Third-Party Notices</a>.</p>
+        <p class="zh">项目自研代码采用 <a href="LICENSE">Business Source License 1.1</a>，发布四年后转为 MIT License。允许非生产和非商业学术使用；其他生产用途需取得 AveraLabs 的商业授权。模型权重等第三方组件仍遵循各自条款，详见<a href="THIRD_PARTY_NOTICES.md">第三方声明</a>。</p>
       </section>
 
     </main>

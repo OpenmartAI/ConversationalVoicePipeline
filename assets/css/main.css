@@ -18,6 +18,19 @@
   --content-max-width: 1120px;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-size-xs: .625rem;
+  --font-size-sm: .6875rem;
+  --font-size-caption: .75rem;
+  --font-size-ui: .8125rem;
+  --font-size-label: .875rem;
+  --font-size-body: 1rem;
+  --font-size-lead: 1.125rem;
+  --font-size-card-title: 1.25rem;
+  --font-size-tagline: clamp(1.3125rem, 2.4vw, 1.75rem);
+  --font-size-step-title: 1.5rem;
+  --font-size-section-title: 1.75rem;
+  --font-size-display: clamp(2.1875rem, 4vw, 3.125rem);
+  --font-size-display-mobile: 2.125rem;
 }
 
 /* Base and language visibility */
@@ -33,7 +46,7 @@ body {
   color: var(--text);
   background: var(--surface);
   font-family: var(--font-sans);
-  font-size: 16px;
+  font-size: var(--font-size-body);
   line-height: 1.65;
 }
 button {
@@ -82,7 +95,7 @@ html[lang="zh-CN"] p.zh {
   border: 1px solid #b8bdc3;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
 
 .project-header {
@@ -92,7 +105,7 @@ html[lang="zh-CN"] p.zh {
 .project-header h1 {
   max-width: 860px;
   margin: 0 auto 12px;
-  font-size: clamp(35px, 4vw, 50px);
+  font-size: var(--font-size-display);
   line-height: 1.14;
   letter-spacing: -.035em;
   font-weight: 650;
@@ -103,13 +116,14 @@ html[lang="zh-CN"] p.zh {
 .project-header .tagline {
   max-width: 720px;
   margin: 0 auto 12px;
-  font-size: clamp(21px, 2.4vw, 28px);
+  font-size: var(--font-size-tagline);
   line-height: 1.32;
   color: #3c4147;
 }
 .project-header .meta {
   margin: 0;
   color: var(--muted);
+  font-size: var(--font-size-label);
 }
 .project-nav {
   display: flex;
@@ -118,15 +132,15 @@ html[lang="zh-CN"] p.zh {
   gap: 8px;
   margin-top: 23px;
 }
-.project-nav a {
+.project-nav a,
+.project-nav-placeholder {
   padding: 7px 15px;
   color: var(--on-accent);
   background: #3d4145;
   border-radius: 20px;
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
-
 /* Content shell and typography */
 
 main {
@@ -143,7 +157,7 @@ section > h2 {
   margin: 0 0 20px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
-  font-size: 28px;
+  font-size: var(--font-size-section-title);
   line-height: 1.3;
   font-weight: 600;
 }
@@ -151,12 +165,15 @@ p {
   margin: 0 0 14px;
 }
 .lead {
-  font-size: 18px;
+  font-size: var(--font-size-lead);
   line-height: 1.75;
+}
+.step-intro {
+  font-size: var(--font-size-body);
 }
 .note {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
 
 /* Pipeline overview */
@@ -190,11 +207,11 @@ p {
 .pipeline-result strong {
   display: block;
   margin-bottom: 3px;
-  font-size: 14px;
+  font-size: var(--font-size-label);
 }
 .pipeline-result span span, .pipeline-result > span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
 .pipeline-lane {
   display: grid;
@@ -226,11 +243,11 @@ p {
 .pipeline-node strong {
   display: block;
   margin-bottom: 5px;
-  font-size: 14px;
+  font-size: var(--font-size-label);
 }
 .pipeline-node span span, .pipeline-node > span {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.45;
 }
 .pipeline-node > strong {
@@ -250,7 +267,7 @@ p {
   border: 1px solid #d7dce1;
   border-radius: 3px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -265,7 +282,7 @@ p {
 .lane-label {
   margin: 0 0 8px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -276,7 +293,7 @@ p {
 figcaption {
   margin-top: 13px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-align: center;
 }
 
@@ -291,7 +308,7 @@ figcaption {
 }
 .step h3 {
   margin: 0 0 14px;
-  font-size: 25px;
+  font-size: var(--font-size-step-title);
   line-height: 1.3;
 }
 .strategy-note {
@@ -312,11 +329,11 @@ figcaption {
 .strategy-note strong {
   display: block;
   margin-bottom: 4px;
-  font-size: 14px;
+  font-size: var(--font-size-label);
 }
 .strategy-note p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-label);
 }
 
 .comparison-grid {
@@ -352,7 +369,7 @@ figcaption {
   gap: 8px;
   margin-bottom: 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   font-weight: 700;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -362,17 +379,17 @@ figcaption {
   color: var(--on-accent);
   background: var(--our);
   border-radius: 2px;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 800;
 }
 .method-header h4 {
   margin: 0 0 5px;
-  font-size: 19px;
+  font-size: var(--font-size-card-title);
 }
 .source-path {
   color: #596169;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   overflow-wrap: anywhere;
 }
 #separation .source-path, #regeneration .source-path {
@@ -396,11 +413,11 @@ figcaption {
 }
 .audio-case h5 {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--font-size-label);
 }
 .audio-format {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
 }
 
 .sample-context {
@@ -408,7 +425,7 @@ figcaption {
   margin: 0;
   padding: 12px 18px 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-size-ui);
   line-height: 1.45;
 }
 .method-panel.video-panel {
@@ -509,7 +526,7 @@ figcaption {
 }
 .wave-time {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
@@ -549,7 +566,7 @@ figcaption {
   padding: 9px 13px;
   color: var(--on-accent);
   background: var(--baseline);
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
 .method-panel.our .dual-play-both {
   border-color: var(--our);
@@ -563,13 +580,13 @@ figcaption {
 }
 .dual-default-hint {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   line-height: 1.35;
 }
 .dual-time {
   margin-left: auto;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -596,7 +613,7 @@ figcaption {
   border: 0;
   border-right: 1px solid var(--border);
   border-radius: 0;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-align: left;
 }
 .track-play:hover {
@@ -620,7 +637,7 @@ figcaption {
   color: var(--on-accent);
   background: var(--baseline);
   border-radius: 50%;
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   text-align: center;
 }
 .method-panel.our .track-play-icon {
@@ -638,7 +655,7 @@ figcaption {
   content: "Play solo";
   margin-top: 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
 }
 .track-play.is-active .track-play-label::after {
@@ -690,7 +707,7 @@ html[lang="zh-CN"] .track-play.is-active .track-play-label::after {
   background: rgba(31, 41, 55, .88);
   border-radius: 3px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, .16);
-  font-size: 10px;
+  font-size: var(--font-size-xs);
   font-weight: 700;
   line-height: 1.2;
   opacity: 0;
@@ -726,7 +743,7 @@ html[lang="zh-CN"] .track-play.is-active .track-play-label::after {
   justify-content: center;
   background: #fbfdfb;
   border: 1px solid #dce9e1;
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   line-height: 1.45;
   overflow: hidden;
 }
@@ -777,7 +794,7 @@ html[lang="zh-CN"] .track-play.is-active .track-play-label::after {
   padding: 12px 13px;
   background: var(--surface-subtle);
   border: 1px solid var(--border);
-  font-size: 13px;
+  font-size: var(--font-size-ui);
 }
 .finding strong {
   display: block;
@@ -788,7 +805,7 @@ footer {
   padding: 28px 0;
   color: var(--muted);
   border-top: 1px solid var(--border);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
   text-align: center;
 }
 
@@ -820,7 +837,7 @@ footer {
     padding-top: 38px;
   }
   .project-header h1 {
-    font-size: 34px;
+    font-size: var(--font-size-display-mobile);
   }
   section {
     margin-top: 52px;
@@ -850,7 +867,7 @@ footer {
   }
   .track-play {
     padding-inline: 8px;
-    font-size: 11px;
+    font-size: var(--font-size-sm);
   }
   .track-play-icon {
     width: 26px;
