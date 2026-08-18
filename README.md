@@ -11,7 +11,7 @@ speaker consistency, annotates timing and speaker attributes, and uses each
 exchange as the basis for new dialogue while preserving its turn-taking, pauses,
 overlap, and paralinguistic cues.
 
-**[Explore the project page, pipeline, and method comparisons →](https://openmartai.github.io/ConversationalVoicePipeline/)**
+**[Explore the project page, pipeline, and method comparisons →][project-page]**
 
 ## What it produces
 
@@ -31,7 +31,7 @@ accepted chunk.
 
 ## Architecture
 
-[![Conversational Voice Pipeline architecture](assets/pipeline-architecture.png)](https://openmartai.github.io/ConversationalVoicePipeline/)
+[![Conversational Voice Pipeline architecture](assets/pipeline-architecture.png)][project-page]
 
 Every stage is an independently installable worker with its own locked
 dependencies and dedicated queue. A worker claims eligible database state,
@@ -65,8 +65,8 @@ raw_audios (one normalized source recording)
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/OpenmartAI/ConversationalVoicePipeline.git
-cd ConversationalVoicePipeline
+git clone https://github.com/avera-labs/ConversationalVoice.git
+cd ConversationalVoice
 ```
 
 ### 2. Prepare infrastructure
@@ -223,3 +223,5 @@ Business Source License 1.1.
 
 See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for third-party licenses and
 attributions. The project license does not replace or override those terms.
+
+[project-page]: //avera-labs.github.io/ConversationalVoice/
