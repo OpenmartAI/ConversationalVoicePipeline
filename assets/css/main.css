@@ -821,6 +821,41 @@ html[lang="zh-CN"] .track-play.is-active .track-play-label::after {
   margin-bottom: 3px;
 }
 
+/* References */
+
+.reference-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: reference;
+}
+.reference-item {
+  position: relative;
+  margin-bottom: 11px;
+  padding-left: 2.4em;
+  counter-increment: reference;
+  font-size: var(--font-size-body);
+  line-height: 1.65;
+}
+.reference-item::before {
+  position: absolute;
+  left: 0;
+  content: "[" counter(reference) "]";
+  font-variant-numeric: tabular-nums;
+}
+.reference-item a {
+  color: #315f85;
+  text-underline-offset: .16em;
+}
+.reference-item a:hover {
+  color: var(--our);
+}
+.reference-item a:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--our);
+  outline-offset: 2px;
+}
+
 footer {
   padding: 28px 0;
   color: var(--muted);
