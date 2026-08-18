@@ -434,7 +434,7 @@
         throw new Error(`Invalid caption source: ${String(this.captionSource)}`);
       }
       if (this.captionSource === 'regeneration' && !this.captionPrefix) {
-        throw new Error('Regeneration captions require data-caption-prefix');
+        throw new Error('Expansion captions require data-caption-prefix');
       }
       if (this.reconstructionEndSeconds !== null
         && (!Number.isFinite(this.reconstructionEndSeconds) || this.reconstructionEndSeconds <= 0)) {
@@ -623,7 +623,7 @@
         ? null
         : (this.activeAudio.currentTime < this.reconstructionEndSeconds
           ? (isChinese ? '当前阶段 · 原始声音重建' : 'Current phase · Original voice reconstruction')
-          : (isChinese ? '当前阶段 · 对话扩展' : 'Current phase · Dialogue extension'));
+          : (isChinese ? '当前阶段 · 对话扩展' : 'Current phase · Dialogue expansion'));
       this.timeElement.textContent = `${formatTime(this.activeAudio.currentTime)} / ${formatTime(duration)}`;
 
       this.waveforms.forEach((waveform) => {

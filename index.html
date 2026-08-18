@@ -9,7 +9,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Conversational Voice builds high-quality full-duplex speech data from real conversations." />
+    <meta name="description" content="Conversational Voice curates speaker-separated and expanded full-duplex speech data from real conversations." />
     <title>Conversational Voice</title>
     <link rel="stylesheet" href="assets/css/main.css" />
   </head>
@@ -26,64 +26,64 @@
       <nav class="project-nav" aria-label="Project sections">
         <a href="#introduction"><span class="en">Introduction</span><span class="zh">介绍</span></a>
         <a href="#pipeline"><span class="en">Pipeline</span><span class="zh">流程</span></a>
-        <a href="#examples"><span class="en">Comparative Examples</span><span class="zh">对比实例</span></a>
+        <a href="#examples"><span class="en">Method Comparisons</span><span class="zh">对比实例</span></a>
       </nav>
     </header>
 
     <main class="container">
       <section id="introduction">
         <h2><span class="en">Introduction</span><span class="zh">项目介绍</span></h2>
-        <p class="lead en">Conversational Voice transforms <strong>any</strong> real world audio into high-quality training data for full-duplex speech models. It discovers genuine two-speaker exchanges, verifies speaker-pure tracks, annotates timing and persona, then expands and re-performs the conversation while preserving realistic turn-taking, pauses, overlap, and paralinguistic behavior.</p>
+        <p class="lead en">Conversational Voice converts a broad range of real-world recordings into curated training data for full-duplex speech models. The pipeline identifies two-speaker exchanges, isolates and validates one track per speaker, annotates timing and speaker attributes, and uses each exchange as the basis for new dialogue while preserving its turn-taking, pauses, overlap, and paralinguistic cues.</p>
         <p class="lead zh">Conversational Voice 将 podcast、电视采访和电影对白等长音频转化为全双工语音模型的高质量训练数据。管线发现真实的双人对谈，验证说话人纯净声轨，标注时序与 Persona，并在保留真实话轮、停顿、重叠和副语言行为的基础上进行扩写与重新演绎。</p>
       </section>
 
       <section id="pipeline">
         <h2><span class="en">Pipeline</span><span class="zh">处理流程</span></h2>
-        <p class="pipeline-output-intro"><span class="en">After passing screening and quality checks, each conversation goes through the complete pipeline and produces two datasets: high-quality separated data from the original recording, and newly generated expansion data based on that real conversation.</span><span class="zh">每段通过筛选与质检的对话经过完整管线后，会产出两组数据：一组是来自原始录音的高质量分离数据，另一组是以当前真实对话为基础的新生成的扩展数据。</span></p>
+        <p class="pipeline-output-intro"><span class="en">Each conversation that passes screening and quality control yields two datasets: validated speaker-separated tracks from the source recording and new dialogue derived from the same exchange.</span><span class="zh">每段通过筛选与质检的对话经过完整管线后，会产出两组数据：一组是来自原始录音的高质量分离数据，另一组是以当前真实对话为基础的新生成的扩展数据。</span></p>
         <div class="pipeline-results">
-          <div class="pipeline-result"><strong><span class="en">High-quality separated data</span><span class="zh">高质量分离数据</span></strong><span><span class="en">Clean, time-aligned, speaker-pure tracks extracted from the original recording.</span><span class="zh">从原始录音中提取清晰、时间对齐且说话人纯净的独立声轨。</span></span></div>
-          <div class="pipeline-result"><strong><span class="en">Conversation-grounded expansion data</span><span class="zh">基于对话的扩展数据</span></strong><span><span class="en">New, controllable dialogue grounded in the content and interaction patterns of the same real conversation.</span><span class="zh">基于同一真实对话的内容与互动模式，生成全新且可控的扩展对话数据。</span></span></div>
+          <div class="pipeline-result"><strong><span class="en">Speaker-separated source data</span><span class="zh">高质量分离数据</span></strong><span><span class="en">A clean, time-aligned track for each speaker, extracted from the source recording and validated for speaker consistency.</span><span class="zh">从原始录音中提取清晰、时间对齐且说话人纯净的独立声轨。</span></span></div>
+          <div class="pipeline-result"><strong><span class="en">Conversation-grounded expansion data</span><span class="zh">基于对话的扩展数据</span></strong><span><span class="en">Controllable new dialogue that retains the context and interaction patterns of the source exchange.</span><span class="zh">基于同一真实对话的内容与互动模式，生成全新且可控的扩展对话数据。</span></span></div>
         </div>
         <figure class="pipeline-figure">
           <p class="lane-label"><span class="en">Separation</span><span class="zh">说话人分离</span></p>
           <div class="pipeline-lane">
-            <div class="pipeline-node"><strong><span class="en">Long-form audio</span><span class="zh">长音频输入</span></strong><span><span class="en">Podcast · interview · film</span><span class="zh">Podcast · 访谈 · 影视对白</span></span></div>
-            <div class="pipeline-node"><strong><span class="en">VAD partition</span><span class="zh">VAD 分片</span></strong><span><span class="en">Natural boundaries ·<br />≈15 min</span><span class="zh">自然边界 · 约 15 分钟</span></span><code class="model-name">pyannote/segmentation-3.0</code></div>
-            <div class="pipeline-node"><strong><span class="en">Diarization & filtering</span><span class="zh">说话人识别与过滤</span></strong><span><span class="en">Remove music and low SNR</span><span class="zh">剔除音乐和低 SNR</span></span><code class="model-name">BUT-FIT/diarizen-wavlm-large-s80-md-v2</code></div>
-            <div class="pipeline-node"><strong><span class="en">Dynamic window search</span><span class="zh">动态窗口搜索</span></strong><span><span class="en">Find high-quality two-speaker conversation segments that are as long as possible</span><span class="zh">寻找尽可能长的高质量双人对话片段</span></span></div>
-            <div class="pipeline-node gate"><strong><span class="en">Separation + QC retry</span><span class="zh">分离 + 质检重试</span></strong><span><span class="en">Reject split, merged, or leaking identities</span><span class="zh">拒绝拆轨、并轨和串轨</span></span><code class="model-name">DialogueSidon</code></div>
+            <div class="pipeline-node"><strong><span class="en">Long-form audio</span><span class="zh">长音频输入</span></strong><span><span class="en">Podcasts · interviews · film dialogue</span><span class="zh">Podcast · 访谈 · 影视对白</span></span></div>
+            <div class="pipeline-node"><strong><span class="en">VAD segmentation</span><span class="zh">VAD 分片</span></strong><span><span class="en">Natural boundaries ·<br />≈15 min</span><span class="zh">自然边界 · 约 15 分钟</span></span><code class="model-name">pyannote/segmentation-3.0</code></div>
+            <div class="pipeline-node"><strong><span class="en">Diarization & filtering</span><span class="zh">说话人识别与过滤</span></strong><span><span class="en">Filter music and low-SNR audio</span><span class="zh">剔除音乐和低 SNR</span></span><code class="model-name">BUT-FIT/diarizen-wavlm-large-s80-md-v2</code></div>
+            <div class="pipeline-node"><strong><span class="en">Dynamic window search</span><span class="zh">动态窗口搜索</span></strong><span><span class="en">Select the longest balanced two-speaker exchanges</span><span class="zh">寻找尽可能长的高质量双人对话片段</span></span></div>
+            <div class="pipeline-node gate"><strong><span class="en">Separation & quality gate</span><span class="zh">分离 + 质检重试</span></strong><span><span class="en">Flag identity splits, merges, and leakage</span><span class="zh">拒绝拆轨、并轨和串轨</span></span><code class="model-name">DialogueSidon</code></div>
           </div>
-          <p class="lane-label"><span class="en">Real-scene grounded expansion & customization</span><span class="zh">基于真实场景的扩写与定制</span></p>
+          <p class="lane-label"><span class="en">Conversation-grounded expansion & control</span><span class="zh">基于真实场景的扩写与定制</span></p>
           <div class="pipeline-lane">
-            <div class="pipeline-node our-node"><strong><span class="en">Verified dual tracks</span><span class="zh">已验证双轨</span></strong><span><span class="en">The two speakers are separated into two independent audio-track files</span><span class="zh">两个说话人的声音被分离到两个独立的声轨文件中</span></span></div>
-            <div class="pipeline-node"><strong><span class="en">Transcription</span><span class="zh">转写</span></strong><span><span class="en">Word and utterance timing</span><span class="zh">词级与话轮级时间戳</span></span><code class="model-name">nvidia/parakeet-tdt-0.6b-v3</code></div>
-            <div class="pipeline-node"><strong><span class="en">Persona modeling</span><span class="zh">Persona 建模</span></strong><span><span class="en">Timbre · rhythm · speaking habits</span><span class="zh">音色 · 节奏 · 表达习惯</span></span></div>
+            <div class="pipeline-node our-node"><strong><span class="en">Verified speaker tracks</span><span class="zh">已验证双轨</span></strong><span><span class="en">One isolated audio track per speaker</span><span class="zh">两个说话人的声音被分离到两个独立的声轨文件中</span></span></div>
+            <div class="pipeline-node"><strong><span class="en">Transcription</span><span class="zh">转写</span></strong><span><span class="en">Word- and utterance-level timestamps</span><span class="zh">词级与话轮级时间戳</span></span><code class="model-name">nvidia/parakeet-tdt-0.6b-v3</code></div>
+            <div class="pipeline-node"><strong><span class="en">Speaker profile</span><span class="zh">Persona 建模</span></strong><span><span class="en">Timbre · cadence · speaking habits</span><span class="zh">音色 · 节奏 · 表达习惯</span></span></div>
             <div class="pipeline-node"><strong><span class="en">Grounded expansion</span><span class="zh">有依据的扩写</span></strong><span><span class="en">Content · pauses · overlap</span><span class="zh">内容 · 停顿 · 重叠</span></span></div>
-            <div class="pipeline-node our-node"><strong><span class="en">New dialogue audio</span><span class="zh">新对话音频</span></strong><span><span class="en">Emotionally expressive dialogue generated from real conversations</span><span class="zh">基于真实对话生成的富有情感的对话</span></span><code class="model-name"><b>voicedesign &amp; voiceclone</b></code></div>
+            <div class="pipeline-node our-node"><strong><span class="en">New dialogue audio</span><span class="zh">新对话音频</span></strong><span><span class="en">Expressive dialogue derived from real exchanges</span><span class="zh">基于真实对话生成的富有情感的对话</span></span><code class="model-name"><b>voicedesign &amp; voiceclone</b></code></div>
           </div>
-          <figcaption><span class="en">The pipeline first secures reliable real dialogue, then uses it as evidence for controllable data expansion.</span><span class="zh">管线先获得可靠的真实对话，再以其为依据进行可控的数据扩展。</span></figcaption>
+          <figcaption><span class="en">The first stage isolates and validates real two-speaker exchanges; the second uses them to produce controllable training data.</span><span class="zh">管线先获得可靠的真实对话，再以其为依据进行可控的数据扩展。</span></figcaption>
         </figure>
       </section>
 
       <section id="examples">
-        <h2><span class="en">Key Step Comparisons</span><span class="zh">关键步骤对比</span></h2>
+        <h2><span class="en">Key Pipeline Comparisons</span><span class="zh">关键步骤对比</span></h2>
         <article class="step" id="separation">
           <h3><span class="en">Speaker Separation</span><span class="zh">说话人分离</span></h3>
           <div class="step-intro">
-            <p class="en">A conventional separation model may split one speaker across different tracks, merge two speakers into the same track, or severely degrade speech quality. Such low-quality separation is effectively unusable for training full-duplex speech models, where stable speaker identity and clean, time-aligned signals are fundamental requirements.</p>
+            <p class="en">Off-the-shelf separation systems can split one speaker across multiple tracks, merge both speakers into a single track, or introduce substantial distortion. Any of these failures compromises training data for full-duplex speech models, which depend on consistent speaker identity, clean signals, and accurate time alignment.</p>
             <p class="zh">传统分离模型可能把同一个人拆到不同音轨、把两个人合入同一音轨，或者严重破坏语音质量。这类低质量分离结果基本无法用于全双工语音模型训练，因为稳定的说话人身份、清晰的人声和准确的时间对齐都是最基础的数据要求。</p>
-            <p class="en">After analyzing and comparing the strengths of several models, we combine them into a coordinated workflow. VAD first partitions hour-scale source audio at natural boundaries into approximately 15-minute parts before diarization, improving Diarizen's speaker-identification performance. After music screening and low-SNR filtering, a greedy dynamic-window search captures the longest possible high-quality segments with exactly two speakers, sustained back-and-forth exchange, and enough speech from each person to support reliable Sidon separation. These constraints filter out long monologues while giving Sidon balanced evidence for both speakers. After separation, speaker-consistency checks detect cases where one person is split across tracks or two people are merged into one track. Chunks that fail these checks are flagged for separation-quality issues and can then be re-separated or excluded.</p>
+            <p class="en">Based on an evaluation of several candidate models, we assembled a coordinated separation workflow. VAD first segments hour-scale recordings at natural boundaries into roughly 15-minute parts; running Diarizen on these shorter parts improves speaker attribution. After filtering music and low-SNR regions, a greedy dynamic-window search selects the longest high-quality segments that contain exactly two speakers, sustain reciprocal exchange, and provide enough speech from each person for robust DialogueSidon separation. These constraints exclude extended monologues and give DialogueSidon balanced evidence for both speakers. Post-separation speaker-consistency checks flag identity splits and merges. Chunks that fail the quality gate are either re-separated or excluded.</p>
             <p class="zh">在分析并比较多个模型的特性后，我们将各自优势组合为一套协同工作的流程。首先利用 VAD 沿自然边界将小时级原始素材切分为约 15 分钟的片段，再交给 diarization 处理，从而提高 Diarizen 的说话人识别性能。完成音乐筛查和低 SNR 过滤后，系统通过动态窗口进行贪心搜索，捕获仅包含两位说话人、保持充分轮流互动且双方语音时长充足的最长高质量片段，以支持 Sidon 可靠分离。这些约束能够过滤大段单人独白，并为 Sidon 提供更均衡的两人语音依据。分离完成后，系统继续执行说话人一致性检查，检测同一个人被拆入不同音轨或两个人被合入同一音轨的情况。未通过检查的片段会被标记为分离质量异常，后续可重新执行分离或直接剔除。</p>
           </div>
           <div class="strategy-note">
-            <div><strong><span class="en">Previous approach</span><span class="zh">之前的方案</span></strong><p><span class="en">SepFormer separates the selected chunk directly, without a downstream identity-consistency gate.</span><span class="zh">SepFormer 直接分离选定片段，缺少后续的说话人身份一致性质量门。</span></p></div>
-            <div><strong><span class="en">Our optimization</span><span class="zh">我们的优化</span></strong><p><span class="en">OUR pipeline combines dynamic two-speaker windows, Sidon separation, identity-consistency checks, retry, and light background-noise suppression.</span><span class="zh">OUR 管线结合动态双人窗口、Sidon 分离、身份一致性检测、自动重试和轻量底噪过滤。</span></p></div>
+            <div><strong><span class="en">Baseline</span><span class="zh">之前的方案</span></strong><p><span class="en">SepFormer operates directly on each selected chunk, with no downstream check for speaker-identity consistency.</span><span class="zh">SepFormer 直接分离选定片段，缺少后续的说话人身份一致性质量门。</span></p></div>
+            <div><strong><span class="en">Proposed pipeline</span><span class="zh">我们的优化</span></strong><p><span class="en">Our pipeline couples dynamic two-speaker windowing with DialogueSidon separation, speaker-consistency checks, selective retries, and light background-noise suppression.</span><span class="zh">OUR 管线结合动态双人窗口、Sidon 分离、身份一致性检测、自动重试和轻量底噪过滤。</span></p></div>
           </div>
 
           <div class="comparison-grid">
-            <section class="method-panel" aria-label="SepFormer comparison">
+            <section class="method-panel" aria-label="SepFormer baseline">
               <header class="method-header">
-                <div class="method-kicker"><span class="en">Previous approach</span><span class="zh">之前的方案</span></div>
+                <div class="method-kicker"><span class="en">Baseline</span><span class="zh">之前的方案</span></div>
                 <h4>SepFormer</h4>
                 <div class="source-path">assets/separation/separation-sepformer/</div>
               </header>
@@ -109,16 +109,16 @@
               </div>
             </section>
 
-            <section class="method-panel our" aria-label="Our separation result">
+            <section class="method-panel our" aria-label="Proposed separation result">
               <header class="method-header">
-                <div class="method-kicker"><span class="our-badge">OUR</span><span>Conversational Voice</span></div>
-                <h4>Sidon + Conversational Voice Pipeline</h4>
+                <div class="method-kicker"><span class="our-badge">Ours</span><span>Conversational Voice</span></div>
+                <h4>DialogueSidon + Conversational Voice</h4>
                 <div class="source-path">assets/separation/separation-sidon-our/</div>
               </header>
               <div class="audio-list">
-                <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="Our input: original recording" data-zh-label="OUR 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
+                <div class="audio-case"><div class="audio-case-head"><h5><span class="en">1 · Original recording</span><span class="zh">1 · 原始录音</span></h5><span class="audio-format">16 kHz</span></div><div class="wave-player"><audio preload="metadata" src="assets/chunk.wav" data-en-label="Proposed pipeline input: original recording" data-zh-label="OUR 输入：原始录音"></audio><div class="wave-controls"><button class="wave-play" type="button">▶</button><div class="waveform" role="slider" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div><span class="wave-time">0:00 / 0:15</span></div></div><div class="source-path">assets/chunk.wav</div></div>
                 <div class="audio-case dual-track-case">
-                  <div class="audio-case-head"><h5><span class="en">2 · OUR Speaker tracks</span><span class="zh">2 · OUR 说话人双轨</span></h5><span class="audio-format">16 kHz</span></div>
+                  <div class="audio-case-head"><h5><span class="en">2 · Proposed speaker tracks</span><span class="zh">2 · OUR 说话人双轨</span></h5><span class="audio-format">16 kHz</span></div>
                   <div class="dual-track-player" data-mode="both" data-caption-source="separation">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/separation/separation-sidon-our/s0.wav"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/separation/separation-sidon-our/s1.wav"></audio>
@@ -139,37 +139,37 @@
             </section>
           </div>
           <div class="finding-list">
-            <div class="finding"><strong><span class="en">Identity consistency</span><span class="zh">身份一致性</span></strong><span class="en">OUR keeps each person in a stable track.</span><span class="zh">OUR 将每个人稳定保留在独立声轨。</span></div>
-            <div class="finding"><strong><span class="en">Acoustic quality</span><span class="zh">声学质量</span></strong><span class="en">OUR preserves clearer 16 kHz speech.</span><span class="zh">OUR 保留更清晰的 16 kHz 人声。</span></div>
-            <div class="finding"><strong><span class="en">Noise control</span><span class="zh">噪声控制</span></strong><span class="en">OUR also suppresses part of the background noise.</span><span class="zh">OUR 同时过滤了部分底噪。</span></div>
+            <div class="finding"><strong><span class="en">Speaker identity</span><span class="zh">身份一致性</span></strong><span class="en">Each speaker remains assigned to a consistent track.</span><span class="zh">OUR 将每个人稳定保留在独立声轨。</span></div>
+            <div class="finding"><strong><span class="en">Signal quality</span><span class="zh">声学质量</span></strong><span class="en">The proposed tracks retain the source recording's 16 kHz sample rate.</span><span class="zh">OUR 保留更清晰的 16 kHz 人声。</span></div>
+            <div class="finding"><strong><span class="en">Residual noise</span><span class="zh">噪声控制</span></strong><span class="en">Light suppression reduces background noise without aggressive denoising.</span><span class="zh">OUR 同时过滤了部分底噪。</span></div>
           </div>
         </article>
 
         <article class="step" id="regeneration">
-          <h3><span class="en">Augmentation from Real World Audio</span><span class="zh">全双工对话生成</span></h3>
+          <h3><span class="en">Dialogue Expansion from Real-World Audio</span><span class="zh">全双工对话生成</span></h3>
           <div class="step-intro">
-            <p class="en">Prompt-only scripts may sound fluent yet generic because they do not inherit the motivation, rhythm, or context of a real exchange. Template-based Dialogue TTS then tends to produce regular pauses and mechanically inserted overlap.</p>
+            <p class="en">Scripts generated from prompts alone can be fluent but often lack the intent, cadence, and context of a real exchange. Template-based dialogue TTS compounds the problem by imposing regular pauses and mechanically scheduled overlap.</p>
             <p class="zh">纯提示词剧本可能听起来流畅却较为泛化，因为它没有继承真实交流中的动机、节奏和上下文；模板化 Dialogue TTS 又容易产生规律的停顿和机械插入的 overlap。</p>
-            <p class="en">OUR method is grounded in real conversation. It expands from observed dialogue content, persona, pauses, and overlap, while also examining the preceding five minutes of dialogue history for broader context. The dialogue expansion stage offers substantial freedom and control: it can extend conversations to greatly increase the volume and diversity of training data, or customize turn-taking, pauses, overlap, paralinguistic behavior, and other characteristics for specific training requirements. The final dialogue is generated with timing and interaction patterns grounded in real exchanges.</p>
+            <p class="en">Our method uses a real exchange as its structural and contextual reference. It models the observed content, speaker profiles, pauses, and overlap, and incorporates up to five minutes of preceding dialogue for broader context. The expansion stage can increase the volume and diversity of training data or target specific interaction patterns, including turn-taking, pause structure, overlap, and paralinguistic cues. The resulting dialogue retains timing and interaction patterns from the source exchange.</p>
             <p class="zh">OUR 方法以真实对话为依据，基于其中已观测到的内容、Persona、停顿与重叠进行扩写，并进一步观察此前 5 分钟的对话历史以获得更多上下文。对话扩写阶段具备很大的自由度与可控性：既可以扩写对话，大幅增加训练数据的规模与多样性；也可以针对具体训练要求，定制话轮节奏、停顿、重叠、副语言表现及其他数据特征。最终生成的对话仍以真实交流中的时序与互动模式为依据。</p>
           </div>
           <div class="comparison-grid">
-            <section class="method-panel video-panel" aria-label="Original movie">
-              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original Movie</span><span class="zh">原始电影</span></h4></header>
+            <section class="method-panel video-panel" aria-label="Source film clip">
+              <header class="method-header"><div class="method-kicker"><span class="en">Source audio</span><span class="zh">原始音频</span></div><h4><span class="en">Film Clip</span><span class="zh">原始电影</span></h4></header>
               <div class="video-case">
-                <video controls playsinline preload="metadata" aria-label="Original movie">
+                <video controls playsinline preload="metadata" aria-label="Source film clip">
                   <source src="assets/regeneration/old-movie/source.mp4" type="video/mp4" />
                   <span class="en">Your browser does not support MP4 video playback.</span>
                   <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
                 </video>
               </div>
             </section>
-            <section class="method-panel our" aria-label="Conversational Voice regeneration comparison">
-              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
-              <p class="sample-context"><span class="en">With improved overall audio quality, this regeneration reconstructs the original voices and extends the scene naturally while preserving vocal identity, character dynamics, and narrative continuity.</span><span class="zh">在提升整体音质的基础上，该重生成结果重建原始声音并自然扩展场景，同时保持人物声线、角色关系与剧情脉络的一致性。</span></p>
+            <section class="method-panel our" aria-label="Conversational Voice dialogue expansion for the film clip">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">Ours</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Expansion</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">This example reconstructs the source voices at higher fidelity and extends the scene while preserving vocal identity, character relationships, and narrative continuity.</span><span class="zh">在提升整体音质的基础上，该重生成结果重建原始声音并自然扩展场景，同时保持人物声线、角色关系与剧情脉络的一致性。</span></p>
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
-                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
                   <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen" data-reconstruction-end="24.3" data-transcript-url="assets/regeneration/old-movie/transcript.json?v=20260811a" data-alignment-url="assets/regeneration/old-movie/word-alignment.json?v=20260811a">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/old-movie/speaker-0.wav?v=20260811a"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/old-movie/speaker-1.wav?v=20260811a"></audio>
@@ -190,22 +190,22 @@
             </section>
           </div>
           <div class="comparison-grid">
-            <section class="method-panel video-panel" aria-label="Original TV talk show">
-              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original TV Talk Show</span><span class="zh">原始电视访谈</span></h4></header>
+            <section class="method-panel video-panel" aria-label="Source TV talk show clip">
+              <header class="method-header"><div class="method-kicker"><span class="en">Source audio</span><span class="zh">原始音频</span></div><h4><span class="en">TV Talk Show Clip</span><span class="zh">原始电视访谈</span></h4></header>
               <div class="video-case">
-                <video controls playsinline preload="metadata" aria-label="Original TV talk show">
+                <video controls playsinline preload="metadata" aria-label="Source TV talk show clip">
                   <source src="assets/regeneration/tv-talk-show/source.mp4?v=20260811a" type="video/mp4" />
                   <span class="en">Your browser does not support MP4 video playback.</span>
                   <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
                 </video>
               </div>
             </section>
-            <section class="method-panel our" aria-label="Additional Conversational Voice regeneration comparison">
-              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
-              <p class="sample-context"><span class="en">With background music removed, this regeneration expands a short source exchange into a longer, naturally paced conversation while preserving speaker identity and conversational context.</span><span class="zh">在去除背景音乐后，该重生成结果将简短的源对话扩展为更长、节奏自然的交流，同时保持说话人身份与对话上下文的一致性。</span></p>
+            <section class="method-panel our" aria-label="Conversational Voice dialogue expansion for the TV talk show clip">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">Ours</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Expansion</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">After removing background music, the pipeline expands a brief source exchange into a longer conversation with natural pacing while preserving speaker identity and context.</span><span class="zh">在去除背景音乐后，该重生成结果将简短的源对话扩展为更长、节奏自然的交流，同时保持说话人身份与对话上下文的一致性。</span></p>
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
-                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
                   <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-our-1" data-reconstruction-end="18.3" data-transcript-url="assets/regeneration/tv-talk-show/transcript.json?v=20260811b" data-alignment-url="assets/regeneration/tv-talk-show/word-alignment.json?v=20260811b">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/tv-talk-show/speaker-0.wav?v=20260811b"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/tv-talk-show/speaker-1.wav?v=20260811b"></audio>
@@ -226,22 +226,22 @@
             </section>
           </div>
           <div class="comparison-grid">
-            <section class="method-panel video-panel" aria-label="Original YouTube video">
-              <header class="method-header"><div class="method-kicker"><span class="en">Original audio</span><span class="zh">原始音频</span></div><h4><span class="en">Original YouTube Video</span><span class="zh">原始 YouTube 视频</span></h4></header>
+            <section class="method-panel video-panel" aria-label="Source in-car video clip">
+              <header class="method-header"><div class="method-kicker"><span class="en">Source audio</span><span class="zh">原始音频</span></div><h4><span class="en">In-Car Video Clip</span><span class="zh">原始 YouTube 视频</span></h4></header>
               <div class="video-case">
-                <video controls playsinline preload="metadata" aria-label="Original YouTube video">
+                <video controls playsinline preload="metadata" aria-label="Source in-car video clip">
                   <source src="assets/regeneration/youtube-car-video/source.mp4?v=20260813a" type="video/mp4" />
                   <span class="en">Your browser does not support MP4 video playback.</span>
                   <span class="zh">当前浏览器不支持 MP4 视频播放。</span>
                 </video>
               </div>
             </section>
-            <section class="method-panel our" aria-label="Car dialogue Conversational Voice regeneration comparison">
-              <header class="method-header"><div class="method-kicker"><span class="our-badge">OUR</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Regeneration</span><span class="zh">MiMo 对话重生成</span></h4></header>
-              <p class="sample-context"><span class="en">This example reconstructs a two-speaker in-car conversation with separate speaker tracks and time-aligned captions.</span><span class="zh">该示例重建了一段车内双人对话，并提供独立说话人声轨与时间对齐字幕。</span></p>
+            <section class="method-panel our" aria-label="Conversational Voice dialogue expansion for the in-car clip">
+              <header class="method-header"><div class="method-kicker"><span class="our-badge">Ours</span><span>Conversational Voice</span></div><h4><span class="en">Dialogue Expansion</span><span class="zh">MiMo 对话重生成</span></h4></header>
+              <p class="sample-context"><span class="en">This example reconstructs a two-speaker in-car exchange as separate, time-aligned speaker tracks.</span><span class="zh">该示例重建了一段车内双人对话，并提供独立说话人声轨与时间对齐字幕。</span></p>
               <div class="audio-list">
                 <div class="audio-case dual-track-case">
-                  <div class="audio-case-head"><h5><span class="en">OUR Speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
+                  <div class="audio-case-head"><h5><span class="en">Expanded speaker tracks</span><span class="zh">OUR 说话人双轨</span></h5><span class="audio-format">24 kHz</span></div>
                   <div class="dual-track-player" data-mode="both" data-caption-source="regeneration" data-caption-prefix="regen-car" data-reconstruction-end="32.725" data-transcript-url="assets/regeneration/youtube-car-video/transcript.json?v=20260813a" data-alignment-url="assets/regeneration/youtube-car-video/word-alignment.json?v=20260813a">
                     <audio preload="metadata" data-track-audio="speaker0" src="assets/regeneration/youtube-car-video/speaker-0.wav?v=20260813b"></audio>
                     <audio preload="metadata" data-track-audio="speaker1" src="assets/regeneration/youtube-car-video/speaker-1.wav?v=20260813b"></audio>
@@ -262,9 +262,9 @@
             </section>
           </div>
           <div class="finding-list">
-            <div class="finding"><strong><span class="en">Real-world grounding</span><span class="zh">真实场景依据</span></strong><span class="en">OUR preserves the source conversation's context and interaction patterns.</span><span class="zh">OUR 保留源对话的上下文与互动模式。</span></div>
-            <div class="finding"><strong><span class="en">Controllable interaction</span><span class="zh">可控互动</span></strong><span class="en">OUR supports customized turn-taking, pauses, overlap, and paralinguistic behavior.</span><span class="zh">OUR 支持定制话轮、停顿、重叠与副语言表现。</span></div>
-            <div class="finding"><strong><span class="en">Scalable augmentation</span><span class="zh">可扩展的数据增强</span></strong><span class="en">OUR expands real conversations into longer and more diverse training data.</span><span class="zh">OUR 将真实对话扩展为更长、更多样的训练数据。</span></div>
+            <div class="finding"><strong><span class="en">Source grounding</span><span class="zh">真实场景依据</span></strong><span class="en">Each expansion retains the source exchange's context and interaction structure.</span><span class="zh">OUR 保留源对话的上下文与互动模式。</span></div>
+            <div class="finding"><strong><span class="en">Interaction control</span><span class="zh">可控互动</span></strong><span class="en">Turn-taking, pauses, overlap, and paralinguistic cues can be targeted for specific training needs.</span><span class="zh">OUR 支持定制话轮、停顿、重叠与副语言表现。</span></div>
+            <div class="finding"><strong><span class="en">Scalable expansion</span><span class="zh">可扩展的数据增强</span></strong><span class="en">A single source exchange can yield longer and more varied training examples.</span><span class="zh">OUR 将真实对话扩展为更长、更多样的训练数据。</span></div>
           </div>
         </article>
       </section>
@@ -278,7 +278,7 @@
 
 
 
-    <footer class="container">Conversational Voice · Technical Project Page</footer>
+    <footer class="container">Conversational Voice · Technical Report</footer>
 
     <script id="alignment-data" type="application/json">{"0":[{"w":"It's","s":0.0,"e":0.24},{"w":"my","s":0.24,"e":0.4},{"w":"first","s":0.4,"e":0.56},{"w":"language","s":0.56,"e":0.96},{"w":"and","s":0.96,"e":1.12},{"w":"I","s":1.12,"e":1.2},{"w":"couldn't","s":1.2,"e":1.44},{"w":"read","s":1.44,"e":1.6},{"w":"it.","s":1.6,"e":1.76},{"w":"That's","s":1.84,"e":2.08},{"w":"when","s":2.08,"e":2.16},{"w":"I","s":2.16,"e":2.24},{"w":"was","s":2.24,"e":2.4},{"w":"like,","s":2.4,"e":2.48},{"w":"I","s":2.64,"e":2.8},{"w":"need","s":2.8,"e":2.88},{"w":"to","s":2.88,"e":3.04},{"w":"go","s":3.04,"e":3.2},{"w":"back","s":3.2,"e":3.36},{"w":"in","s":3.36,"e":3.68},{"w":"touch.","s":3.68,"e":4.32},{"w":"Yeah,","s":5.12,"e":5.44},{"w":"I,","s":5.52,"e":5.6},{"w":"I","s":6.08,"e":6.16},{"w":"have","s":6.24,"e":6.32},{"w":"to","s":6.48,"e":6.64},{"w":"give","s":6.64,"e":6.8},{"w":"it","s":6.8,"e":6.88},{"w":"to","s":6.88,"e":7.04},{"w":"my","s":7.04,"e":7.2},{"w":"dad","s":7.2,"e":7.52},{"w":"to","s":7.52,"e":7.76},{"w":"translate","s":7.76,"e":8.24},{"w":"it","s":8.24,"e":8.4},{"w":"for","s":8.4,"e":8.64},{"w":"me.","s":8.64,"e":8.8},{"w":"And","s":9.04,"e":9.28},{"w":"my","s":9.28,"e":9.44},{"w":"dad's","s":9.44,"e":9.84},{"w":"reading","s":9.84,"e":10.16},{"w":"my","s":10.16,"e":10.32},{"w":"childhood","s":10.32,"e":10.8},{"w":"diary","s":10.8,"e":11.2},{"w":"just","s":11.28,"e":11.44},{"w":"laughing.","s":11.44,"e":11.76},{"w":"Like","s":11.84,"e":12.0},{"w":"haha,","s":12.0,"e":12.5},{"w":"haha","s":12.5,"e":14}],"1":[{"w":"Okay.","s":0.16,"e":0.24},{"w":"and","s":3.685,"e":3.845},{"w":"get","s":4.005,"e":4.245},{"w":"somebody","s":4.245,"e":4.565},{"w":"to","s":4.565,"e":4.645},{"w":"read","s":4.645,"e":4.965},{"w":"it","s":4.965,"e":5.125},{"w":"to","s":5.125,"e":5.285},{"w":"you.","s":5.285,"e":5.445},{"w":"Yeah.","s":5.685,"e":5.925},{"w":"It's","s":8.689,"e":9.169},{"w":"you.","s":9.169,"e":9.409}]}</script>
 
